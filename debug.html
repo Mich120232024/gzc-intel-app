@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GZC Intel Debug</title>
+    <script>
+        // Debug console override
+        const originalLog = console.log;
+        const originalError = console.error;
+        const logs = [];
+        
+        console.log = function(...args) {
+            logs.push({type: 'log', message: args.join(' '), time: new Date().toISOString()});
+            originalLog.apply(console, args);
+        };
+        
+        console.error = function(...args) {
+            logs.push({type: 'error', message: args.join(' '), time: new Date().toISOString()});
+            originalError.apply(console, args);
+        };
+        
+        window.addEventListener('error', (e) => {
+            logs.push({
+                type: 'error',
+                message: `${e.message} at ${e.filename}:${e.lineno}:${e.colno}`,
+                time: new Date().toISOString()
+            });
+        });
+        
+        // Expose debug info
+        window.debugInfo = {
+            logs: logs,
+            localStorage: () => ({...localStorage}),
+            sessionStorage: () => ({...sessionStorage}),
+            getComponentStates: () => {
+                const states = {};
+                // Try to get React fiber info
+                const containers = document.querySelectorAll('[data-reactroot], #root');
+                containers.forEach((container, i) => {
+                    const key = Object.keys(container).find(key => key.startsWith('__reactContainer'));
+                    if (key) {
+                        states[`container_${i}`] = 'React container found';
+                    }
+                });
+                return states;
+            }
+        };
+    </script>
+</head>
+<body>
+    <div id="root"></div>
+    <div style="position: fixed; bottom: 0; left: 0; right: 0; background: #000; color: #0f0; padding: 10px; font-family: monospace; max-height: 200px; overflow-y: auto; font-size: 11px;">
+        <div id="debug-output"></div>
+    </div>
+    <script type="module">
+        import('./src/main.tsx');
+        
+        // Update debug output
+        setInterval(() => {
+            const output = document.getElementById('debug-output');
+            const lastLogs = window.debugInfo.logs.slice(-10);
+            output.innerHTML = lastLogs.map(log => 
+                `<div style="color: ${log.type === 'error' ? '#f00' : '#0f0'}">[${log.time.split('T')[1].split('.')[0]}] ${log.message}</div>`
+            ).join('');
+        }, 100);
+    </script>
+</body>
+</html>
