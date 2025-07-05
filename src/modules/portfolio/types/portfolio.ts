@@ -30,8 +30,8 @@ export interface PortfolioFilter {
     symbol?: string;
     trader?: string;
     position?: string;
-    search?: string;
-    assetClass?: string;
-    status?: string;
+    search: string;
+    assetClass: string;
+    status: string;
 }
 
