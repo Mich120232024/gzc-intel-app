@@ -148,7 +148,7 @@ export async function loadComponentWithMetadata(componentId: string) {
 export function getComponentsByCategory(category: ComponentMetadata['category']) {
   return Object.entries(enhancedComponentRegistry)
     .filter(([_, entry]) => entry.metadata.category === category)
-    .map(([id, entry]) => ({ id, ...entry.metadata }))
+    .map(([componentId, entry]) => ({ ...entry.metadata, id: componentId }))
 }
 
 // Create a registry that's compatible with the old format but includes metadata

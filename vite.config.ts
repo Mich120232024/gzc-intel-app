@@ -6,8 +6,6 @@ import path from 'path'
 export default defineConfig({
   plugins: [
     react({
-      // Disable Fast Refresh for stable production-like behavior
-      fastRefresh: false,
       // Use automatic JSX runtime
       jsxRuntime: 'automatic'
     })

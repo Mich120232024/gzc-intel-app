@@ -26,7 +26,10 @@ export class TabManager {
     }
 
     // Dynamic component addition removed
-    return false
+    return {
+      success: false,
+      message: 'Dynamic component addition not implemented in professional architecture'
+    }
   }
 
   // List all available components
@@ -42,7 +45,13 @@ export class TabManager {
   // Get component info
   static getComponentInfo(componentName: string) {
     const template = componentName.toLowerCase().includes('portfolio') ? 
-      { name: 'Portfolio', category: 'portfolio' } : null
+      { 
+        name: 'Portfolio', 
+        category: 'portfolio',
+        description: 'Portfolio management component',
+        tags: ['finance', 'portfolio'],
+        icon: 'briefcase'
+      } : null
     
     if (!template) {
       return null

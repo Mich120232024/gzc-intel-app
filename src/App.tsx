@@ -1,16 +1,14 @@
 import React from 'react'
 import { BrowserRouter as Router } from 'react-router-dom'
 
-// Alex's modular structure
-import { ThemeProvider as AlexThemeProvider, DateProvider, QuoteProvider, AuthContext } from './modules/ui-library'
-// Our core providers
-import { ThemeProvider } from './core/theme'
+// PROFESSIONAL ARCHITECTURE: Unified provider system (no conflicts)
+import { UnifiedProvider } from './core/providers/UnifiedProvider'
 import { GridProvider } from './core/layout'
 import { TabLayoutProvider, TabBar } from './core/tabs'
 import { EnhancedComponentLoader } from './core/tabs/EnhancedComponentLoader'
 import { MarketIntelPanel } from './components/MarketIntelPanel'
 import { UserProvider } from './contexts/UserContext'
-// Header removed - TabBar now includes all header functionality
+import { EnhancedErrorBoundary } from './components/EnhancedErrorBoundary'
 
 import './styles/globals.css'
 import './styles/quantum.css'
@@ -22,15 +20,12 @@ function App() {
   document.documentElement.removeAttribute('data-theme')
 
   return (
-    <UserProvider>
-      <ThemeProvider>
-        <GridProvider>
-          <TabLayoutProvider>
-            <AlexThemeProvider>
-              <AuthContext.Provider value={{ getToken: async () => "mock-token" }}>
-                <DateProvider>
-                  <QuoteProvider>
-                    <Router>
+    <EnhancedErrorBoundary componentName="App">
+      <UnifiedProvider>
+        <UserProvider>
+          <GridProvider>
+            <TabLayoutProvider>
+              <Router>
                     <div className="min-h-screen flex flex-col" style={{ backgroundColor: '#0a0a0a', color: 'rgba(248, 246, 240, 0.9)' }}>
                       {/* Tab Bar with integrated header - single line */}
                       <TabBar />
@@ -84,15 +79,12 @@ function App() {
                       
                       {/* Debug Panel removed */}
                     </div>
-                  </Router>
-                </QuoteProvider>
-              </DateProvider>
-            </AuthContext.Provider>
-          </AlexThemeProvider>
-        </TabLayoutProvider>
-      </GridProvider>
-    </ThemeProvider>
-    </UserProvider>
+              </Router>
+            </TabLayoutProvider>
+          </GridProvider>
+        </UserProvider>
+      </UnifiedProvider>
+    </EnhancedErrorBoundary>
   )
 }
 

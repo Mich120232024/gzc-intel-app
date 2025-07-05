@@ -305,3 +305,5 @@ export const AnalyticsDashboardExample: React.FC = () => {
       </div>
   );
 };
+
+export default AnalyticsDashboardExample;

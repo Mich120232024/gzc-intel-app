@@ -5,9 +5,10 @@ interface FeatherIconProps {
   size?: number
   className?: string
   color?: string
+  style?: React.CSSProperties
 }
 
-export function FeatherIcon({ name, size = 16, className = '', color = 'currentColor' }: FeatherIconProps) {
+export function FeatherIcon({ name, size = 16, className = '', color = 'currentColor', style }: FeatherIconProps) {
   const [svgContent, setSvgContent] = useState<string>('')
   
   useEffect(() => {
@@ -39,6 +40,7 @@ export function FeatherIcon({ name, size = 16, className = '', color = 'currentC
   return (
     <div 
       className={`inline-flex items-center justify-center ${className}`}
+      style={style}
       dangerouslySetInnerHTML={{ __html: svgContent }}
     />
   )

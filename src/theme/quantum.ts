@@ -13,6 +13,7 @@ export const quantumTheme = {
   // Text colors with warm tones
   text: '#f8f6f0E6',          // Warm off-white, 90% opacity
   textSecondary: '#c8c0b0CC', // Lighter warm gray, 80% opacity
+  textTertiary: '#9a948899',  // Even lighter warm gray, 60% opacity
   
   // Border colors
   border: '#3a3632',          // Warm dark border
