@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useTheme } from '../contexts/ThemeContext';
 
 // Declare mermaid on window
@@ -13,15 +13,45 @@ interface DocSection {
   content: React.ReactNode;
 }
 
-// Simplified Mermaid component for reliable rendering
+// Mermaid component with proper rendering lifecycle
 const MermaidDiagram: React.FC<{ chart: string; id: string }> = ({ chart, id }) => {
   const { currentTheme: theme } = useTheme();
-  const [key, setKey] = useState(0);
+  const [rendered, setRendered] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
   
-  // Force re-render when theme changes
   useEffect(() => {
-    setKey(prev => prev + 1);
-  }, [theme.name]);
+    const renderDiagram = async () => {
+      if (window.mermaid && containerRef.current) {
+        try {
+          // Clear any existing content
+          containerRef.current.innerHTML = chart;
+          
+          // Remove any existing SVG
+          const existingSvg = containerRef.current.querySelector('svg');
+          if (existingSvg) {
+            existingSvg.remove();
+          }
+          
+          // Render the diagram
+          await window.mermaid.run({
+            nodes: [containerRef.current]
+          });
+          
+          setRendered(true);
+        } catch (error) {
+          console.error('Mermaid rendering error:', error);
+          // Fallback: show raw text
+          if (containerRef.current) {
+            containerRef.current.innerHTML = `<pre style="font-size: 12px; text-align: left;">${chart}</pre>`;
+          }
+        }
+      }
+    };
+
+    if (window.mermaid) {
+      renderDiagram();
+    }
+  }, [chart, theme.name]);
   
   return (
     <div 
@@ -36,7 +66,7 @@ const MermaidDiagram: React.FC<{ chart: string; id: string }> = ({ chart, id }) 
       }}
     >
       <div 
-        key={key}
+        ref={containerRef}
         className="mermaid" 
         style={{ 
           background: 'transparent', 
@@ -439,58 +469,50 @@ export const themes: Record<string, Theme> = {
   ];
 
   useEffect(() => {
-    // Load Mermaid library
-    const script = document.createElement('script');
-    script.src = 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js';
-    script.async = true;
-    script.onload = () => {
-      // Simple theme detection
+    // Load Mermaid library only once
+    if (!window.mermaid) {
+      const script = document.createElement('script');
+      script.src = 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js';
+      script.async = true;
+      script.onload = () => {
+        // Simple theme detection
+        const isDarkTheme = !theme.name.includes('Light') && 
+                           theme.name !== 'Arctic' && 
+                           theme.name !== 'Parchment' && 
+                           theme.name !== 'Pearl';
+        
+        // Use mermaid's built-in themes
+        window.mermaid.initialize({ 
+          startOnLoad: false, // We'll manually trigger rendering
+          theme: isDarkTheme ? 'dark' : 'default',
+          securityLevel: 'loose'
+        });
+        setMermaidLoaded(true);
+      };
+      document.body.appendChild(script);
+    } else {
+      // Mermaid already loaded, just update theme
       const isDarkTheme = !theme.name.includes('Light') && 
                          theme.name !== 'Arctic' && 
                          theme.name !== 'Parchment' && 
                          theme.name !== 'Pearl';
       
-      // Use mermaid's built-in themes
       window.mermaid.initialize({ 
-        startOnLoad: true,
+        startOnLoad: false,
         theme: isDarkTheme ? 'dark' : 'default',
         securityLevel: 'loose'
       });
       setMermaidLoaded(true);
-    };
-    document.body.appendChild(script);
-
-    return () => {
-      if (script.parentNode) {
-        script.parentNode.removeChild(script);
-      }
-    };
-  }, [theme]);
-
-  // Simple re-render when theme changes
-  useEffect(() => {
-    if (mermaidLoaded && window.mermaid) {
-      // Simple theme detection
-      const isDarkTheme = !theme.name.includes('Light') && 
-                         theme.name !== 'Arctic' && 
-                         theme.name !== 'Parchment' && 
-                         theme.name !== 'Pearl';
-      
-      // Re-initialize with correct theme
-      window.mermaid.initialize({ 
-        startOnLoad: true,
-        theme: isDarkTheme ? 'dark' : 'default',
-        securityLevel: 'loose'
-      });
-      
-      // Trigger re-render
-      setTimeout(() => {
-        if (window.mermaid.contentLoaded) {
-          window.mermaid.contentLoaded();
-        }
-      }, 200);
     }
-  }, [mermaidLoaded, theme.name]);
+  }, [theme.name]);
+
+  // Clean up when component unmounts
+  useEffect(() => {
+    return () => {
+      // Clear any existing diagrams
+      document.querySelectorAll('.mermaid svg').forEach(el => el.remove());
+    };
+  }, []);
 
   return (
     <div style={{
@@ -499,12 +521,13 @@ export const themes: Record<string, Theme> = {
       color: theme.text
     }}>
       <h1 style={{
-        fontSize: theme.typography.h1.fontSize,
-        fontWeight: theme.typography.h1.fontWeight,
-        marginBottom: '24px',
-        color: theme.text
+        fontSize: '16px',
+        fontWeight: '500',
+        marginBottom: '16px',
+        color: theme.textSecondary,
+        opacity: 0.8
       }}>
-        GZC Intel App - Documentation
+        Documentation
       </h1>
 
       <div style={{
