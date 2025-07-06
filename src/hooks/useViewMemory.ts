@@ -39,6 +39,33 @@ export interface ViewMemory {
   theme?: {
     customColors?: any;
     fontSize?: 'small' | 'medium' | 'large';
+    currentTheme?: string;
+    themeSystem?: {
+      availableThemes: string[];
+      gzcGreenSystem: {
+        base: string;
+        light: string;
+        dark: string;
+        opacityVariants: string[];
+      };
+      lightThemeDetection: string[];
+      componentStyling: {
+        logoColorLogic: string;
+        tabBackgroundLogic: string;
+        arcticMonochromaticApproach: string;
+      };
+      designPrinciples: {
+        singleGreenPhilosophy: string;
+        institutionalIdentity: string;
+        monochromaticInteractions: string;
+      };
+      fileLocations: {
+        themeDefinitions: string;
+        themeContext: string;
+        themeSelector: string;
+        styleGuide: string;
+      };
+    };
   };
 }
 
@@ -205,6 +232,46 @@ export const useViewMemory = () => {
     }));
   }, []);
 
+  // Initialize theme system with comprehensive style references
+  const initializeThemeSystem = useCallback(() => {
+    const themeSystemData = {
+      currentTheme: 'gzc-dark',
+      themeSystem: {
+        availableThemes: [
+          'gzc-dark', 'analytics-dark', 'terminal-green', 'trading-ops', 
+          'midnight-trading', 'quantum-analytics', 'professional',
+          'institutional', 'arctic', 'parchment', 'pearl'
+        ],
+        gzcGreenSystem: {
+          base: '#7A9E65',
+          light: '#95BD78',
+          dark: '#5B7C4B',
+          opacityVariants: ['E6', 'CC', '99', '66', '33', '1A']
+        },
+        lightThemeDetection: ['institutional', 'arctic', 'parchment', 'pearl'],
+        componentStyling: {
+          logoColorLogic: 'Light themes: theme.text | Dark themes: #E0E0E0',
+          tabBackgroundLogic: 'Arctic: rgba(0,0,0,0.05) | Others: theme.primary + 20',
+          arcticMonochromaticApproach: 'Selected: rgba(0,0,0,0.05) | Hover: rgba(0,0,0,0.02)'
+        },
+        designPrinciples: {
+          singleGreenPhilosophy: 'Use GZC green base with opacity variations, not multiple greens',
+          institutionalIdentity: 'All themes maintain GZC green #7A9E65 for success states',
+          monochromaticInteractions: 'Prefer brightness/opacity over color changes for interactions'
+        },
+        fileLocations: {
+          themeDefinitions: '/src/theme/themes.ts',
+          themeContext: '/src/contexts/ThemeContext.tsx',
+          themeSelector: '/src/components/ThemeSelector.tsx',
+          styleGuide: '/STYLE_GUIDE.md'
+        }
+      }
+    };
+    
+    saveThemeSettings(themeSystemData);
+    console.log('Theme system initialized in view memory with comprehensive style references');
+  }, [saveThemeSettings]);
+
   // Reset functions
   const resetLayouts = useCallback(() => {
     setViewMemory(prev => ({
@@ -284,6 +351,7 @@ export const useViewMemory = () => {
     // Theme functions
     theme: viewMemory.theme,
     saveThemeSettings,
+    initializeThemeSystem,
     
     // Utility functions
     resetLayouts,

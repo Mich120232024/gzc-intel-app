@@ -18,6 +18,9 @@ import './styles/quantum.css'
 import 'react-grid-layout/css/styles.css'
 import 'react-resizable/css/styles.css'
 
+// Memory inspector for development (makes memoryInspector available globally)
+import './utils/memoryInspector'
+
 // Inner app component that uses theme
 function AppContent() {
   const { currentTheme } = useTheme()

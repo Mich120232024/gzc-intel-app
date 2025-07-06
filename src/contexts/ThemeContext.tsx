@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react'
 import { themes, Theme } from '../theme/themes'
+import { useViewMemory } from '../hooks/useViewMemory'
 
 interface ThemeContextType {
   currentTheme: Theme
@@ -27,6 +28,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
   children, 
   defaultTheme = 'gzc-dark' 
 }) => {
+  const { initializeThemeSystem, saveThemeSettings } = useViewMemory()
   const [themeName, setThemeName] = useState<string>(() => {
     // Try to get theme from localStorage
     const savedTheme = localStorage.getItem('gzc-intel-theme')
@@ -37,6 +39,9 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
     if (themes[newThemeName]) {
       setThemeName(newThemeName)
       localStorage.setItem('gzc-intel-theme', newThemeName)
+      
+      // Update view memory with current theme
+      saveThemeSettings({ currentTheme: newThemeName })
       
       // Apply theme to document root for CSS variables
       const root = document.documentElement
@@ -68,6 +73,11 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
   useEffect(() => {
     setTheme(themeName)
   }, [themeName])
+
+  // Initialize comprehensive theme system in view memory
+  useEffect(() => {
+    initializeThemeSystem()
+  }, [initializeThemeSystem])
 
   const value: ThemeContextType = {
     currentTheme: themes[themeName],
