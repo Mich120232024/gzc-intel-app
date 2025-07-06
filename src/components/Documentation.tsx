@@ -66,37 +66,43 @@ export const Documentation: React.FC = () => {
           </p>
           <MermaidDiagram 
             id="current-architecture"
-            chart={`graph TB
-    subgraph "Frontend - Port 3500"
+            chart={`flowchart TB
+    subgraph frontend ["Frontend - Port 3500"]
         UI["React + TypeScript<br/>Vite Dev Server"]
         Theme["Theme System<br/>11 Professional Themes"]
         Tabs["Tab Management<br/>Dynamic Components"]
         DnD["React Grid Layout<br/>Drag & Drop"]
     end
     
-    subgraph "Core Features"
+    subgraph features ["Core Features"]
         Header["Professional Header<br/>P&L Display"]
         Intel["Market Intel Panel<br/>AI Agents"]
         Docs["Documentation<br/>Mermaid Diagrams"]
         Analytics["Analytics Tab<br/>Ready for Widgets"]
     end
     
-    subgraph "State Management"
+    subgraph state ["State Management"]
         Context["React Context<br/>Theme Provider"]
         Local["LocalStorage<br/>Persistence"]
+        Memory["View Memory<br/>Dual System"]
+        Inspector["Memory Inspector<br/>Dev Tools"]
     end
     
     UI --> Theme
     UI --> Tabs
     UI --> DnD
     
-    Tabs --> Header
-    Tabs --> Intel
-    Tabs --> Docs
-    Tabs --> Analytics
+    Theme --> features
+    Tabs --> features
     
     Theme --> Context
-    Context --> Local`}
+    Context --> Local
+    Context --> Memory
+    Memory --> Inspector
+    
+    style frontend fill:#1A1A1A,stroke:#7A9E65,color:#F0F0F0
+    style features fill:#2A2A2A,stroke:#95BD78,color:#E0E0E0
+    style state fill:#142236,stroke:#4db8e8,color:#FFFFFF`}
           />
         </div>
       )
@@ -110,8 +116,8 @@ export const Documentation: React.FC = () => {
           </p>
           <MermaidDiagram 
             id="theme-system"
-            chart={`graph LR
-    subgraph "Dark Themes"
+            chart={`flowchart TD
+    subgraph dark ["Dark Themes"]
         GD["GZC Dark<br/>Institutional"]
         AD["Analytics Dark<br/>Data Viz"]
         TG["Terminal Green<br/>Bloomberg Style"]
@@ -121,23 +127,29 @@ export const Documentation: React.FC = () => {
         PR["Professional<br/>Sea Blue"]
     end
     
-    subgraph "Light Themes"
+    subgraph light ["Light Themes"]
         GL["GZC Light<br/>Clean Professional"]
         AR["Arctic<br/>Cool Blue-Grey"]
         PA["Parchment<br/>Warm Silver"]
         PE["Pearl<br/>Steel Blue"]
     end
     
-    subgraph "Theme Features"
+    subgraph features ["Theme System"]
         TP["Theme Provider"]
         LS["LocalStorage<br/>Persistence"]
         CV["CSS Variables<br/>Instant Switch"]
+        VM["View Memory<br/>Dual System"]
     end
     
-    TP --> GD
-    TP --> GL
+    TP --> dark
+    TP --> light
     TP --> LS
-    TP --> CV`}
+    TP --> CV
+    TP --> VM
+    
+    style dark fill:#2A2A2A,stroke:#7A9E65,color:#E0E0E0
+    style light fill:#F8F9FA,stroke:#5B7C4B,color:#1F2937
+    style features fill:#1A1A1A,stroke:#95BD78,color:#F0F0F0`}
           />
           <div style={{
             backgroundColor: theme.surface,
@@ -164,35 +176,41 @@ export const Documentation: React.FC = () => {
           </p>
           <MermaidDiagram 
             id="component-architecture"
-            chart={`graph TD
+            chart={`flowchart TD
     App["App.tsx<br/>Entry Point"]
     
-    subgraph "Providers"
+    subgraph providers ["Provider Layer"]
         TP["ThemeProvider"]
         TLP["TabLayoutProvider"]
         EB["ErrorBoundary"]
+        VM["ViewMemory<br/>Hook"]
     end
     
-    subgraph "Core Components"
+    subgraph core ["Core Components"]
         PH["ProfessionalHeader<br/>Logo, Tabs, P&L"]
         MIP["MarketIntelPanel<br/>AI Agents, Alerts"]
         TC["TabContainer<br/>Content Area"]
     end
     
-    subgraph "Tab Components"
+    subgraph tabs ["Tab Components"]
         AT["Analytics Tab<br/>Empty State"]
         DT["Documentation Tab<br/>This Page"]
     end
     
-    App --> TP
+    App --> providers
     TP --> TLP
     TLP --> EB
-    EB --> PH
-    EB --> MIP
-    EB --> TC
+    EB --> core
+    VM --> TP
     
+    core --> tabs
+    PH --> tabs
     TC --> AT
-    TC --> DT`}
+    TC --> DT
+    
+    style providers fill:#1A1A1A,stroke:#7A9E65,color:#F0F0F0
+    style core fill:#2A2A2A,stroke:#95BD78,color:#E0E0E0
+    style tabs fill:#3A3A3A,stroke:#ABD38F,color:#FFFFFF`}
           />
         </div>
       )
@@ -505,8 +523,47 @@ export const themes: Record<string, Theme> = {
       // Remove old SVGs
       document.querySelectorAll('.mermaid svg').forEach(el => el.remove());
       
-      // Reset mermaid state
-      window.mermaid.contentLoaded();
+      // Clear mermaid internal state
+      if (window.mermaid.mermaidAPI && window.mermaid.mermaidAPI.reset) {
+        window.mermaid.mermaidAPI.reset();
+      }
+      
+      // Force re-initialization with current theme
+      const isDarkTheme = !theme.name.includes('Light') && 
+                         theme.name !== 'Arctic' && 
+                         theme.name !== 'Parchment' && 
+                         theme.name !== 'Pearl';
+      
+      window.mermaid.initialize({ 
+        startOnLoad: true,
+        theme: 'base',
+        themeVariables: {
+          primaryColor: theme.surface,
+          primaryTextColor: theme.text,
+          primaryBorderColor: theme.primary,
+          background: theme.surface,
+          mainBkg: theme.surface,
+          secondBkg: theme.surfaceAlt,
+          tertiaryBkg: theme.background,
+          nodeBorder: theme.border,
+          clusterBorder: theme.border,
+          edgeLabelBackground: theme.surface,
+          textColor: theme.text,
+          labelTextColor: theme.text,
+          nodeTextColor: theme.text,
+          lineColor: theme.border,
+          fontFamily: 'Inter, system-ui, sans-serif',
+          fontSize: '14px',
+          darkMode: isDarkTheme,
+          clusterBkg: theme.surfaceAlt,
+          defaultLinkColor: theme.border
+        }
+      });
+      
+      // Trigger re-render with delay
+      setTimeout(() => {
+        window.mermaid.contentLoaded();
+      }, 100);
     }
   }, [activeSection, mermaidLoaded, theme]);
 
