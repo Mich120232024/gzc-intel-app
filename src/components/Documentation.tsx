@@ -13,45 +13,65 @@ interface DocSection {
   content: React.ReactNode;
 }
 
-// Mermaid component with proper rendering lifecycle
+// Simple mermaid component that re-renders when visible
 const MermaidDiagram: React.FC<{ chart: string; id: string }> = ({ chart, id }) => {
   const { currentTheme: theme } = useTheme();
-  const [rendered, setRendered] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const [isVisible, setIsVisible] = useState(false);
   
+  // Use intersection observer to detect when diagram becomes visible
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setIsVisible(entry.isIntersecting);
+      },
+      { threshold: 0.1 }
+    );
+    
+    if (containerRef.current) {
+      observer.observe(containerRef.current);
+    }
+    
+    return () => observer.disconnect();
+  }, []);
+  
+  // Render diagram when visible and mermaid is loaded
   useEffect(() => {
     const renderDiagram = async () => {
-      if (window.mermaid && containerRef.current) {
+      if (window.mermaid && containerRef.current && isVisible) {
         try {
-          // Clear any existing content
+          // Create unique ID for this diagram
+          const uniqueId = `mermaid-${id}-${Date.now()}`;
+          containerRef.current.id = uniqueId;
+          
+          // Clear container
           containerRef.current.innerHTML = chart;
           
-          // Remove any existing SVG
-          const existingSvg = containerRef.current.querySelector('svg');
-          if (existingSvg) {
-            existingSvg.remove();
-          }
-          
-          // Render the diagram
+          // Render
           await window.mermaid.run({
             nodes: [containerRef.current]
           });
           
-          setRendered(true);
         } catch (error) {
-          console.error('Mermaid rendering error:', error);
-          // Fallback: show raw text
+          console.error(`Mermaid rendering error for ${id}:`, error);
           if (containerRef.current) {
-            containerRef.current.innerHTML = `<pre style="font-size: 12px; text-align: left;">${chart}</pre>`;
+            containerRef.current.innerHTML = `<div style="padding: 20px; background: rgba(255,0,0,0.1); border-radius: 4px;">
+              <p style="margin: 0; color: ${theme.textSecondary};">Diagram rendering failed</p>
+              <details style="margin-top: 8px;">
+                <summary style="cursor: pointer; color: ${theme.textTertiary};">Show diagram code</summary>
+                <pre style="margin-top: 8px; font-size: 10px; white-space: pre-wrap;">${chart}</pre>
+              </details>
+            </div>`;
           }
         }
       }
     };
 
-    if (window.mermaid) {
-      renderDiagram();
+    if (isVisible) {
+      // Small delay to ensure mermaid is ready
+      setTimeout(renderDiagram, 100);
     }
-  }, [chart, theme.name]);
+  }, [isVisible, chart, id, theme.name]);
   
   return (
     <div 
@@ -74,7 +94,15 @@ const MermaidDiagram: React.FC<{ chart: string; id: string }> = ({ chart, id }) 
           minHeight: '200px'
         }}
       >
-        {chart}
+        {!isVisible && (
+          <div style={{ 
+            color: theme.textTertiary, 
+            fontSize: '12px',
+            padding: '40px 0'
+          }}>
+            Loading diagram...
+          </div>
+        )}
       </div>
     </div>
   );
