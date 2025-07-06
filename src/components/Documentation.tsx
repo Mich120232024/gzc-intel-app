@@ -38,12 +38,24 @@ const MermaidDiagram: React.FC<{ chart: string; id: string; isActive: boolean }>
           const diagramDiv = document.createElement('div');
           diagramDiv.className = 'mermaid';
           diagramDiv.textContent = chart;
+          diagramDiv.style.width = '100%';
+          diagramDiv.style.height = '100%';
+          diagramDiv.style.minHeight = '350px';
           containerRef.current.appendChild(diagramDiv);
           
           // Render with mermaid
           await window.mermaid.run({
             nodes: [diagramDiv]
           });
+          
+          // Scale up the SVG after rendering
+          const svg = diagramDiv.querySelector('svg');
+          if (svg) {
+            svg.style.maxWidth = '100%';
+            svg.style.height = 'auto';
+            svg.style.transform = 'scale(1.2)';
+            svg.style.transformOrigin = 'center';
+          }
           
         } catch (error) {
           console.error(`Mermaid rendering error for ${id}:`, error);
@@ -85,7 +97,8 @@ const MermaidDiagram: React.FC<{ chart: string; id: string; isActive: boolean }>
         style={{ 
           background: 'transparent', 
           margin: 0,
-          minHeight: '300px',
+          minHeight: '400px',
+          width: '100%',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center'
@@ -488,11 +501,20 @@ export const themes: Record<string, Theme> = {
                            theme.name !== 'Parchment' && 
                            theme.name !== 'Pearl';
         
-        // Use mermaid's built-in themes
+        // Use mermaid's built-in themes with larger sizing
         window.mermaid.initialize({ 
           startOnLoad: false, // We'll manually trigger rendering
           theme: isDarkTheme ? 'dark' : 'default',
-          securityLevel: 'loose'
+          securityLevel: 'loose',
+          flowchart: {
+            nodeSpacing: 60,
+            rankSpacing: 80,
+            curve: 'linear'
+          },
+          themeVariables: {
+            fontSize: '16px',
+            fontFamily: 'Inter, system-ui, sans-serif'
+          }
         });
         setMermaidLoaded(true);
       };
@@ -507,7 +529,16 @@ export const themes: Record<string, Theme> = {
       window.mermaid.initialize({ 
         startOnLoad: false,
         theme: isDarkTheme ? 'dark' : 'default',
-        securityLevel: 'loose'
+        securityLevel: 'loose',
+        flowchart: {
+          nodeSpacing: 60,
+          rankSpacing: 80,
+          curve: 'linear'
+        },
+        themeVariables: {
+          fontSize: '16px',
+          fontFamily: 'Inter, system-ui, sans-serif'
+        }
       });
       setMermaidLoaded(true);
     }
