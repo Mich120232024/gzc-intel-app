@@ -84,11 +84,11 @@ const MermaidDiagram: React.FC<{ chart: string; id: string; isActive: boolean }>
     <div 
       style={{ 
         textAlign: 'center', 
-        margin: '20px 0',
+        margin: '16px 0',
         backgroundColor: theme.surfaceAlt,
         border: `1px solid ${theme.border}`,
         borderRadius: '4px',
-        padding: '24px',
+        padding: '20px',
         overflow: 'auto'
       }}
     >
@@ -571,7 +571,7 @@ export const themes: Record<string, Theme> = {
 
       <div style={{
         display: 'flex',
-        gap: '20px',
+        gap: '12px',
         height: 'calc(100vh - 200px)'
       }}>
         {/* Navigation */}
@@ -581,7 +581,9 @@ export const themes: Record<string, Theme> = {
           borderRadius: '4px',
           border: `1px solid ${theme.border}`,
           padding: '12px',
-          overflow: 'auto'
+          overflow: 'auto',
+          display: 'flex',
+          flexDirection: 'column'
         }}>
           <h3 style={{
             fontSize: theme.typography.h3.fontSize,
@@ -634,7 +636,9 @@ export const themes: Record<string, Theme> = {
           borderRadius: '4px',
           border: `1px solid ${theme.border}`,
           padding: '24px',
-          overflow: 'auto'
+          overflow: 'auto',
+          display: 'flex',
+          flexDirection: 'column'
         }}>
           <h2 style={{
             fontSize: theme.typography.h2.fontSize,
@@ -654,16 +658,21 @@ export const themes: Record<string, Theme> = {
       </div>
 
       <div style={{
-        marginTop: '24px',
-        padding: '12px',
+        marginTop: '12px',
+        padding: '8px 12px',
         backgroundColor: theme.surface,
         borderRadius: '4px',
         border: `1px solid ${theme.border}`,
         textAlign: 'center',
         fontSize: theme.typography.bodySmall.fontSize,
-        color: theme.textSecondary
+        color: theme.textSecondary,
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center'
       }}>
-        Last Updated: {new Date().toLocaleDateString()} | Version: 1.0.0 | Theme: {theme.name}
+        <span>Last Updated: {new Date().toLocaleDateString()}</span>
+        <span>Version: 1.0.0</span>
+        <span>Theme: {theme.name}</span>
       </div>
     </div>
   );
