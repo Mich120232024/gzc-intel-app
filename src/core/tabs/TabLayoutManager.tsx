@@ -2,17 +2,31 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 import { v4 as uuidv4 } from 'uuid'
 import { TabManager, setupConsoleHelpers } from './TabUtils'
 import { useUserSettings } from '../../hooks/useUserSettings'
+import { useViewMemory } from '../../hooks/useViewMemory'
 
-// Tab configuration types
+// Component in tab configuration for dynamic tabs
+export interface ComponentInTab {
+  id: string
+  type: string // Component type from inventory
+  position: { x: number; y: number; w: number; h: number }
+  props?: Record<string, any>
+  zIndex?: number
+}
+
+// Tab configuration types with hybrid architecture support
 export interface TabConfig {
   id: string
   name: string
   component: string // Component identifier to load
+  type: 'dynamic' | 'static' | 'edit-mode' | 'it-managed' // Hybrid tab types
   icon?: string
   closable?: boolean
   props?: Record<string, any>
   gridLayoutEnabled?: boolean // Enable fluid grid layout for this tab
   gridLayout?: any[] // Store react-grid-layout configuration
+  components?: ComponentInTab[] // For dynamic tabs with multiple components
+  editMode?: boolean // Whether tab is in edit mode
+  memoryStrategy?: 'local' | 'redis' | 'hybrid' // Memory management strategy
 }
 
 export interface TabLayout {
@@ -41,6 +55,9 @@ interface TabLayoutContextValue {
   updateTab: (tabId: string, updates: Partial<TabConfig>) => void
   reorderTabs: (newTabs: TabConfig[]) => void
   
+  // Enhanced tab creation with prompt
+  createTabWithPrompt: () => void
+  
   // Layout actions
   saveCurrentLayout: (name: string) => void
   loadLayout: (layoutId: string) => void
@@ -50,23 +67,38 @@ interface TabLayoutContextValue {
   // Grid layout actions
   updateTabGridLayout: (tabId: string, gridLayout: any[]) => void
   toggleTabGridLayout: (tabId: string, enabled: boolean) => void
+  
+  // Dynamic tab component management
+  addComponentToTab: (tabId: string, component: ComponentInTab) => void
+  removeComponentFromTab: (tabId: string, componentId: string) => void
+  updateComponentInTab: (tabId: string, componentId: string, updates: Partial<ComponentInTab>) => void
+  
+  // Edit mode management
+  toggleTabEditMode: (tabId: string) => void
 }
 
-// Default tabs configuration - Analytics and Documentation only
+// Default tabs configuration with hybrid types
 const DEFAULT_TABS: TabConfig[] = [
   {
     id: 'analytics',
     name: 'Analytics',
     component: 'Analytics',
+    type: 'dynamic',
     icon: 'bar-chart-2',
-    closable: false
+    closable: false,
+    gridLayoutEnabled: true,
+    components: [],
+    memoryStrategy: 'hybrid'
   },
   {
     id: 'documentation',
     name: 'Documentation',
     component: 'Documentation',
+    type: 'static',
     icon: 'book-open',
-    closable: false
+    closable: false,
+    gridLayoutEnabled: false,
+    memoryStrategy: 'local'
   }
 ]
 
@@ -97,6 +129,7 @@ export function TabLayoutProvider({ children }: TabLayoutProviderProps) {
   const [layouts, setLayouts] = useState<TabLayout[]>([DEFAULT_LAYOUT])
   const [currentLayout, setCurrentLayout] = useState<TabLayout>(DEFAULT_LAYOUT)
   const [activeTabId, setActiveTabId] = useState<string>('analytics')
+  const { saveTabOrder, saveActiveTab, saveLayout } = useViewMemory()
 
   // Load saved layouts from localStorage on mount
   useEffect(() => {
@@ -309,6 +342,158 @@ export function TabLayoutProvider({ children }: TabLayoutProviderProps) {
     }
   }
 
+  // Enhanced tab creation with prompt
+  const createTabWithPrompt = () => {
+    const title = prompt('Enter tab title:')
+    if (!title) return
+
+    const tabTypes = [
+      { value: 'dynamic', label: 'Dynamic (Full drag & drop)' },
+      { value: 'static', label: 'Static (Fixed layout)' },
+      { value: 'edit-mode', label: 'Edit Mode (Controlled customization)' },
+      { value: 'it-managed', label: 'IT Managed (Enterprise features)' }
+    ]
+
+    const typeSelection = prompt(
+      `Select tab type:\n${tabTypes.map((t, i) => `${i + 1}. ${t.label}`).join('\n')}\n\nEnter number (1-4):`
+    )
+
+    const typeIndex = parseInt(typeSelection || '1') - 1
+    const selectedType = tabTypes[typeIndex]?.value || 'static'
+
+    const newTab: Omit<TabConfig, 'id'> = {
+      name: title,
+      component: selectedType === 'dynamic' ? 'DynamicCanvas' : title.replace(/\s+/g, ''),
+      type: selectedType as TabConfig['type'],
+      icon: getIconForTabType(selectedType as TabConfig['type']),
+      closable: true,
+      gridLayoutEnabled: selectedType === 'dynamic' || selectedType === 'edit-mode',
+      components: selectedType === 'dynamic' ? [] : undefined,
+      editMode: false,
+      memoryStrategy: selectedType === 'dynamic' ? 'hybrid' : 'local'
+    }
+
+    addTab(newTab)
+  }
+
+  // Helper function to get appropriate icon for tab type
+  const getIconForTabType = (type: TabConfig['type']): string => {
+    switch (type) {
+      case 'dynamic': return 'grid'
+      case 'static': return 'layout'
+      case 'edit-mode': return 'edit'
+      case 'it-managed': return 'shield'
+      default: return 'square'
+    }
+  }
+
+  // Dynamic tab component management
+  const addComponentToTab = (tabId: string, component: ComponentInTab) => {
+    const tab = currentLayout.tabs.find(t => t.id === tabId)
+    if (!tab || tab.type !== 'dynamic') return
+
+    const updatedLayout = {
+      ...currentLayout,
+      tabs: currentLayout.tabs.map(t => 
+        t.id === tabId 
+          ? { ...t, components: [...(t.components || []), component] }
+          : t
+      ),
+      updatedAt: new Date().toISOString()
+    }
+    
+    setCurrentLayout(updatedLayout)
+    
+    // Save to view memory for dynamic tabs
+    if (tab.memoryStrategy === 'hybrid' || tab.memoryStrategy === 'redis') {
+      saveLayout(`tab-${tabId}`, updatedLayout.tabs.find(t => t.id === tabId)?.components)
+    }
+    
+    // Update in layouts array if it's a saved layout
+    if (!currentLayout.isDefault) {
+      setLayouts(layouts.map(l => l.id === currentLayout.id ? updatedLayout : l))
+    }
+  }
+
+  const removeComponentFromTab = (tabId: string, componentId: string) => {
+    const tab = currentLayout.tabs.find(t => t.id === tabId)
+    if (!tab || tab.type !== 'dynamic') return
+
+    const updatedLayout = {
+      ...currentLayout,
+      tabs: currentLayout.tabs.map(t => 
+        t.id === tabId 
+          ? { ...t, components: (t.components || []).filter(c => c.id !== componentId) }
+          : t
+      ),
+      updatedAt: new Date().toISOString()
+    }
+    
+    setCurrentLayout(updatedLayout)
+    
+    // Save to view memory
+    if (tab.memoryStrategy === 'hybrid' || tab.memoryStrategy === 'redis') {
+      saveLayout(`tab-${tabId}`, updatedLayout.tabs.find(t => t.id === tabId)?.components)
+    }
+    
+    // Update in layouts array if it's a saved layout
+    if (!currentLayout.isDefault) {
+      setLayouts(layouts.map(l => l.id === currentLayout.id ? updatedLayout : l))
+    }
+  }
+
+  const updateComponentInTab = (tabId: string, componentId: string, updates: Partial<ComponentInTab>) => {
+    const tab = currentLayout.tabs.find(t => t.id === tabId)
+    if (!tab || tab.type !== 'dynamic') return
+
+    const updatedLayout = {
+      ...currentLayout,
+      tabs: currentLayout.tabs.map(t => 
+        t.id === tabId 
+          ? { 
+              ...t, 
+              components: (t.components || []).map(c => 
+                c.id === componentId ? { ...c, ...updates } : c
+              )
+            }
+          : t
+      ),
+      updatedAt: new Date().toISOString()
+    }
+    
+    setCurrentLayout(updatedLayout)
+    
+    // Save to view memory with real-time updates
+    if (tab.memoryStrategy === 'hybrid' || tab.memoryStrategy === 'redis') {
+      saveLayout(`tab-${tabId}`, updatedLayout.tabs.find(t => t.id === tabId)?.components)
+    }
+    
+    // Update in layouts array if it's a saved layout
+    if (!currentLayout.isDefault) {
+      setLayouts(layouts.map(l => l.id === currentLayout.id ? updatedLayout : l))
+    }
+  }
+
+  const toggleTabEditMode = (tabId: string) => {
+    const tab = currentLayout.tabs.find(t => t.id === tabId)
+    if (!tab || tab.type !== 'edit-mode') return
+
+    const updatedLayout = {
+      ...currentLayout,
+      tabs: currentLayout.tabs.map(t => 
+        t.id === tabId ? { ...t, editMode: !t.editMode } : t
+      ),
+      updatedAt: new Date().toISOString()
+    }
+    
+    setCurrentLayout(updatedLayout)
+    
+    // Update in layouts array if it's a saved layout
+    if (!currentLayout.isDefault) {
+      setLayouts(layouts.map(l => l.id === currentLayout.id ? updatedLayout : l))
+    }
+  }
+
   const value: TabLayoutContextValue = {
     currentLayout,
     activeTabId,
@@ -320,12 +505,17 @@ export function TabLayoutProvider({ children }: TabLayoutProviderProps) {
     removeTab,
     updateTab,
     reorderTabs,
+    createTabWithPrompt,
     saveCurrentLayout,
     loadLayout,
     deleteLayout,
     resetToDefault,
     updateTabGridLayout,
-    toggleTabGridLayout
+    toggleTabGridLayout,
+    addComponentToTab,
+    removeComponentFromTab,
+    updateComponentInTab,
+    toggleTabEditMode
   }
 
   return (

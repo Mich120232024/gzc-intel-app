@@ -13,7 +13,9 @@ export function TabBar() {
     loadLayout,
     resetToDefault,
     layouts,
-    userLayouts
+    userLayouts,
+    createTabWithPrompt,
+    removeTab
   } = useTabLayout()
 
   const [showLayoutMenu, setShowLayoutMenu] = useState(false)
@@ -69,42 +71,138 @@ export function TabBar() {
         </div>
 
         {/* Tabs */}
-        <div style={{ display: 'flex', gap: '4px' }}>
+        <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
           {currentLayout.tabs.map(tab => (
             <div
               key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
               style={{
                 display: 'flex',
                 alignItems: 'center',
-                gap: '6px',
-                padding: '6px 12px',
-                cursor: 'pointer',
-                backgroundColor: activeTabId === tab.id ? '#2A2A2A' : 'transparent',
-                borderRadius: '4px',
-                borderBottom: activeTabId === tab.id ? '2px solid #ABD38F' : '2px solid transparent',
-                boxShadow: activeTabId === tab.id ? 'inset 0 -2px 0 0 #ABD38F' : 'none',
-                transition: 'all 0.2s ease'
+                gap: '4px',
+                position: 'relative',
+                group: tab.id
               }}
             >
-              {tab.icon && (
-                <FeatherIcon 
-                  name={tab.icon} 
-                  size={14} 
-                  style={{ 
-                    color: activeTabId === tab.id ? '#ABD38F' : quantumTheme.textSecondary 
-                  }} 
-                />
-              )}
-              <span style={{
-                fontSize: '12px',
-                color: activeTabId === tab.id ? quantumTheme.text : quantumTheme.textSecondary,
-                fontWeight: activeTabId === tab.id ? 500 : 400
-              }}>
-                {tab.name}
-              </span>
+              <div
+                onClick={() => setActiveTab(tab.id)}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  padding: '6px 12px',
+                  paddingRight: tab.closable ? '28px' : '12px',
+                  cursor: 'pointer',
+                  backgroundColor: activeTabId === tab.id ? '#2A2A2A' : 'transparent',
+                  borderRadius: '4px',
+                  borderBottom: activeTabId === tab.id ? '2px solid #ABD38F' : '2px solid transparent',
+                  boxShadow: activeTabId === tab.id ? 'inset 0 -2px 0 0 #ABD38F' : 'none',
+                  transition: 'all 0.2s ease',
+                  position: 'relative'
+                }}
+              >
+                {tab.icon && (
+                  <FeatherIcon 
+                    name={tab.icon} 
+                    size={14} 
+                    style={{ 
+                      color: activeTabId === tab.id ? '#ABD38F' : quantumTheme.textSecondary 
+                    }} 
+                  />
+                )}
+                <span style={{
+                  fontSize: '12px',
+                  color: activeTabId === tab.id ? quantumTheme.text : quantumTheme.textSecondary,
+                  fontWeight: activeTabId === tab.id ? 500 : 400
+                }}>
+                  {tab.name}
+                </span>
+                
+                {/* Tab Type Indicator */}
+                <div style={{
+                  position: 'absolute',
+                  top: '2px',
+                  right: tab.closable ? '24px' : '4px',
+                  width: '4px',
+                  height: '4px',
+                  borderRadius: '50%',
+                  backgroundColor: 
+                    tab.type === 'dynamic' ? '#95BD78' :
+                    tab.type === 'static' ? '#64b5f6' :
+                    tab.type === 'edit-mode' ? '#DD8B8B' :
+                    '#ABD38F',
+                  opacity: 0.7
+                }} />
+
+                {/* Close Button for Closable Tabs */}
+                {tab.closable && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      removeTab(tab.id)
+                    }}
+                    style={{
+                      position: 'absolute',
+                      right: '6px',
+                      top: '50%',
+                      transform: 'translateY(-50%)',
+                      background: 'none',
+                      border: 'none',
+                      cursor: 'pointer',
+                      color: quantumTheme.textSecondary,
+                      padding: '2px',
+                      borderRadius: '2px',
+                      opacity: 0.6,
+                      transition: 'all 0.2s ease'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)'
+                      e.currentTarget.style.color = quantumTheme.text
+                      e.currentTarget.style.opacity = '1'
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = 'transparent'
+                      e.currentTarget.style.color = quantumTheme.textSecondary
+                      e.currentTarget.style.opacity = '0.6'
+                    }}
+                  >
+                    <FeatherIcon name="x" size={12} />
+                  </button>
+                )}
+              </div>
             </div>
           ))}
+          
+          {/* Add Tab Button */}
+          <button
+            onClick={createTabWithPrompt}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: '32px',
+              height: '32px',
+              backgroundColor: 'transparent',
+              border: `1px dashed ${quantumTheme.border}`,
+              borderRadius: '4px',
+              cursor: 'pointer',
+              color: quantumTheme.textSecondary,
+              transition: 'all 0.2s ease',
+              marginLeft: '8px'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.borderColor = '#ABD38F'
+              e.currentTarget.style.backgroundColor = 'rgba(171, 211, 143, 0.1)'
+              e.currentTarget.style.color = '#ABD38F'
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.borderColor = quantumTheme.border
+              e.currentTarget.style.backgroundColor = 'transparent'
+              e.currentTarget.style.color = quantumTheme.textSecondary
+            }}
+            title="Add New Tab"
+          >
+            <FeatherIcon name="plus" size={16} />
+          </button>
         </div>
       </div>
 
