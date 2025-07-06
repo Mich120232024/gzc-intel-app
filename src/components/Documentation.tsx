@@ -40,7 +40,7 @@ const MermaidDiagram: React.FC<{ chart: string; id: string; isActive: boolean }>
           diagramDiv.textContent = chart;
           diagramDiv.style.width = '100%';
           diagramDiv.style.height = '100%';
-          diagramDiv.style.minHeight = '350px';
+          diagramDiv.style.minHeight = '300px';
           containerRef.current.appendChild(diagramDiv);
           
           // Render with mermaid
@@ -53,7 +53,7 @@ const MermaidDiagram: React.FC<{ chart: string; id: string; isActive: boolean }>
           if (svg) {
             svg.style.maxWidth = '100%';
             svg.style.height = 'auto';
-            svg.style.transform = 'scale(1.2)';
+            svg.style.transform = 'scale(1.1)';
             svg.style.transformOrigin = 'center';
           }
           
@@ -97,11 +97,12 @@ const MermaidDiagram: React.FC<{ chart: string; id: string; isActive: boolean }>
         style={{ 
           background: 'transparent', 
           margin: 0,
-          minHeight: '400px',
+          minHeight: '350px',
           width: '100%',
           display: 'flex',
           alignItems: 'center',
-          justifyContent: 'center'
+          justifyContent: 'center',
+          overflow: 'hidden'
         }}
       >
         {!isActive && (
@@ -507,8 +508,8 @@ export const themes: Record<string, Theme> = {
           theme: isDarkTheme ? 'dark' : 'default',
           securityLevel: 'loose',
           flowchart: {
-            nodeSpacing: 60,
-            rankSpacing: 80,
+            nodeSpacing: 50,
+            rankSpacing: 60,
             curve: 'linear'
           },
           themeVariables: {
