@@ -9,11 +9,11 @@ export const MarketIntelPanel = () => {
   return (
     <div style={{
       width: isCollapsed ? '60px' : '320px',
-      height: isCollapsed ? 'calc(100vh - 48px)' : '100%', // Full viewport height minus header when collapsed
+      height: 'calc(100vh - 88px)', // Dynamic height: full viewport minus header minus footer
       backgroundColor: theme.surface,
       borderRight: `1px solid ${theme.border}`,
       padding: isCollapsed ? '16px 12px' : '16px',
-      paddingBottom: isCollapsed ? '0' : '40px', // No padding when collapsed
+      paddingBottom: isCollapsed ? '16px' : '16px', // Consistent padding
       overflowY: 'auto',
       transition: 'width 0.3s ease',
       position: 'relative',

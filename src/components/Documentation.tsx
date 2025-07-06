@@ -43,8 +43,8 @@ const MermaidDiagram: React.FC<{ chart: string; id: string; isActive: boolean }>
           const diagramDiv = document.createElement('div');
           diagramDiv.className = 'mermaid';
           diagramDiv.textContent = chart;
-          diagramDiv.style.width = '800px';  // Fixed width
-          diagramDiv.style.height = '400px'; // Fixed height
+          diagramDiv.style.width = '1600px';  // Doubled width for horizontal scrolling
+          diagramDiv.style.height = '800px';  // Doubled height
           containerRef.current.appendChild(diagramDiv);
           
           // Render with mermaid
@@ -141,7 +141,7 @@ const MermaidDiagram: React.FC<{ chart: string; id: string; isActive: boolean }>
           alignItems: 'center'
         }}>
           <span style={{ fontSize: '10px', color: theme.textSecondary }}>
-            Zoom: {Math.round(zoomLevel * 100)}% • Click & drag to pan
+            Zoom: {Math.round(zoomLevel * 100)}% • Click & drag to pan • Scroll both ways
           </span>
           <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
             <button
@@ -197,8 +197,8 @@ const MermaidDiagram: React.FC<{ chart: string; id: string; isActive: boolean }>
       <div 
         ref={scrollContainerRef}
         style={{ 
-          height: '300px',
-          overflow: 'auto',
+          height: '600px', // Doubled container height
+          overflow: 'auto', // Both horizontal and vertical scrolling
           backgroundColor: theme.background,
           cursor: isDragging ? 'grabbing' : 'grab',
           userSelect: 'none'
@@ -212,8 +212,8 @@ const MermaidDiagram: React.FC<{ chart: string; id: string; isActive: boolean }>
           style={{ 
             background: 'transparent', 
             margin: 0,
-            minWidth: '800px',
-            minHeight: '400px',
+            minWidth: '1600px',  // Doubled width to enable horizontal scrolling
+            minHeight: '800px',  // Doubled height
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -671,14 +671,14 @@ export const themes: Record<string, Theme> = {
 
   return (
     <div style={{
-      minHeight: 'calc(100vh - 60px)',
+      height: 'calc(100vh - 88px)', // Match MarketIntelPanel height: header(48px) + footer(40px)
       padding: '8px',
       color: theme.text
     }}>
       <div style={{
         display: 'flex',
         gap: '8px',
-        height: 'calc(100vh - 80px)'
+        height: 'calc(100% - 16px)' // Subtract padding
       }}>
         {/* Navigation */}
         <div style={{
