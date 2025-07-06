@@ -34,22 +34,38 @@ export function TabBar() {
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'space-between',
-      backgroundColor: '#0a0a0a',
+      backgroundColor: '#1A1A1A',
       borderBottom: `1px solid ${quantumTheme.border}`,
-      height: '40px',
+      height: '48px',
       padding: '0 16px',
       position: 'relative'
     }}>
       {/* Left Section - Logo and Tabs */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
-        {/* Logo */}
+        {/* Logo with animated dot */}
         <div style={{
-          fontSize: '14px',
-          fontWeight: 600,
-          color: '#ABD38F',
-          letterSpacing: '0.5px'
+          fontSize: '18px',
+          fontWeight: 700,
+          background: 'linear-gradient(135deg, #95BD78 0%, #ABD38F 100%)',
+          WebkitBackgroundClip: 'text',
+          WebkitTextFillColor: 'transparent',
+          backgroundClip: 'text',
+          letterSpacing: '0.5px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+          cursor: 'pointer'
         }}>
-          GZC Intel
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <div style={{ 
+              width: '6px', 
+              height: '6px', 
+              borderRadius: '50%',
+              background: '#ABD38F',
+              animation: 'pulse 2s infinite'
+            }} />
+            <span>GZC Intel</span>
+          </div>
         </div>
 
         {/* Tabs */}
@@ -64,7 +80,7 @@ export function TabBar() {
                 gap: '6px',
                 padding: '6px 12px',
                 cursor: 'pointer',
-                backgroundColor: activeTabId === tab.id ? '#1a1a1a' : 'transparent',
+                backgroundColor: activeTabId === tab.id ? '#2A2A2A' : 'transparent',
                 borderRadius: '4px',
                 borderBottom: activeTabId === tab.id ? '2px solid #ABD38F' : '2px solid transparent',
                 boxShadow: activeTabId === tab.id ? 'inset 0 -2px 0 0 #ABD38F' : 'none',
@@ -92,8 +108,66 @@ export function TabBar() {
         </div>
       </div>
 
-      {/* Right Section - Actions */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+      {/* Right Section - PnL, Theme Selector, Actions */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+        
+        {/* PnL Display */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px', fontSize: '12px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <span style={{ color: quantumTheme.textSecondary, fontSize: '10px' }}>24h P&L:</span>
+            <span style={{ 
+              fontWeight: 500, 
+              color: '#ABD38F'
+            }}>
+              +$12,497.97
+            </span>
+          </div>
+          <span style={{ color: quantumTheme.borderLight }}>|</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <span style={{ color: quantumTheme.textSecondary, fontSize: '10px' }}>MTD:</span>
+            <span style={{ 
+              fontWeight: 500, 
+              color: '#ABD38F'
+            }}>
+              +$84,923.45
+            </span>
+          </div>
+        </div>
+
+        {/* Theme Selector */}
+        <div style={{ position: 'relative' }}>
+          <select
+            value="GZC Dark"
+            onChange={() => {}}
+            style={{
+              background: `linear-gradient(to bottom, ${quantumTheme.surfaceAlt}CC, ${quantumTheme.surface}EE)`,
+              border: `1px solid ${quantumTheme.border}`,
+              borderRadius: '6px',
+              padding: '6px 28px 6px 10px',
+              color: quantumTheme.text,
+              fontSize: '12px',
+              fontWeight: 400,
+              cursor: 'pointer',
+              outline: 'none',
+              appearance: 'none',
+              backdropFilter: 'blur(8px)',
+              transition: 'all 0.2s ease'
+            }}
+          >
+            <option value="GZC Dark">GZC Dark</option>
+            <option value="GZC Light">GZC Light</option>
+            <option value="Trading Pro">Trading Pro</option>
+          </select>
+          <div style={{
+            position: 'absolute',
+            right: '8px',
+            top: '50%',
+            transform: 'translateY(-50%)',
+            pointerEvents: 'none'
+          }}>
+            <FeatherIcon name="chevron-down" size={12} color={quantumTheme.textSecondary} />
+          </div>
+        </div>
 
         {/* Layout Menu Button */}
         <button
@@ -154,7 +228,7 @@ export function TabBar() {
           top: '100%',
           right: '16px',
           marginTop: '8px',
-          backgroundColor: '#0f0f0f',
+          backgroundColor: '#1A1A1A',
           border: `1px solid ${quantumTheme.border}`,
           borderRadius: '8px',
           padding: '8px',

@@ -309,6 +309,8 @@ export function EnhancedComponentLoader() {
 
   // Handle registry components (local and registry-based)
   console.log('EnhancedComponentLoader: Looking for component', activeTab.component)
+  console.log('EnhancedComponentLoader: Full registry:', Object.keys(componentRegistry))
+  console.log('EnhancedComponentLoader: Active tab details:', JSON.stringify(activeTab))
   const componentLoader = componentRegistry[activeTab.component]
   
   if (!componentLoader) {

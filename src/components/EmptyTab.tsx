@@ -1,11 +1,18 @@
 import React from 'react'
-import { quantumTheme } from '../theme/quantum'
+import { useTheme } from '../contexts/ThemeContext'
+
+interface EmptyTabProps {
+  title?: string
+  tabId?: string
+}
 
 /**
  * Empty tab placeholder component
  * Content-agnostic - just provides structure
  */
-export const EmptyTab: React.FC = () => {
+export const EmptyTab: React.FC<EmptyTabProps> = ({ title = 'Empty Tab', tabId }) => {
+  const { currentTheme: theme } = useTheme()
+  
   return (
     <div
       style={{
@@ -14,19 +21,34 @@ export const EmptyTab: React.FC = () => {
         alignItems: 'center',
         justifyContent: 'center',
         height: '100%',
-        color: quantumTheme.textSecondary,
+        backgroundColor: theme.background,
+        color: theme.muted,
         textAlign: 'center'
       }}
     >
-      <div style={{ fontSize: '48px', marginBottom: quantumTheme.spacing.md }}>
-        📊
-      </div>
-      <h3 style={quantumTheme.typography.h2}>
-        Empty Tab
-      </h3>
-      <p style={quantumTheme.typography.body}>
-        This tab is ready for content
+      <h2 style={{ 
+        ...theme.typography.h2, 
+        marginBottom: theme.spacing.md,
+        color: theme.text
+      }}>
+        {title}
+      </h2>
+      <p style={{ 
+        ...theme.typography.body,
+        color: theme.muted
+      }}>
+        Clean slate - ready for implementation
       </p>
+      {tabId && (
+        <p style={{ 
+          ...theme.typography.bodySmall,
+          color: theme.muted,
+          marginTop: theme.spacing.sm,
+          opacity: 0.5
+        }}>
+          Tab ID: {tabId}
+        </p>
+      )}
     </div>
   )
 }

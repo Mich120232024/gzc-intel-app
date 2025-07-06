@@ -6,9 +6,9 @@ export const quantumTheme = {
   accent: '#95BD7866',        // 40% opacity
   
   // Dark backgrounds with subtle brown undertones
-  background: '#0a0a0a',      // Near black
-  surface: '#1a1918',         // Subtle brown undertone
-  surfaceAlt: '#252321',      // Warmer surface
+  background: '#1A1A1A',      // Softer black from port 3200
+  surface: '#2A2A2A',         // Surface from port 3200
+  surfaceAlt: '#3A3A3A',      // Lighter surface from port 3200
   
   // Text colors with warm tones
   text: '#f8f6f0E6',          // Warm off-white, 90% opacity
@@ -23,6 +23,7 @@ export const quantumTheme = {
   success: '#A8CC88',         // Softer green
   danger: '#D69A82',          // Warmer red
   warning: '#95BD7866',       // Same as accent
+  muted: '#9a948899',         // Muted text color
   
   // Special effects
   gradient: 'linear-gradient(135deg, #95BD78, #A8CC88)',

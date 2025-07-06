@@ -1,5 +1,5 @@
 import React, { ReactNode } from 'react'
-import { quantumTheme } from '../theme/quantum'
+import { useTheme } from '../contexts/ThemeContext'
 
 interface TabContainerProps {
   children: ReactNode
@@ -14,15 +14,17 @@ export const TabContainer: React.FC<TabContainerProps> = ({
   children, 
   className = '' 
 }) => {
+  const { currentTheme: theme } = useTheme()
+  
   return (
     <div 
       className={`tab-container ${className}`}
       style={{
         width: '100%',
         height: '100%',
-        backgroundColor: quantumTheme.background,
-        color: quantumTheme.text,
-        padding: quantumTheme.spacing.md,
+        backgroundColor: theme.background,
+        color: theme.text,
+        padding: theme.spacing.md,
         overflow: 'auto'
       }}
     >

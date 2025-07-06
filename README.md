@@ -33,13 +33,26 @@ npm install
 
 ### Development
 ```bash
+# Standard development
 npm run dev
+
+# Development with Chrome debugging
+npm run dev:debug
+
+# Run tests in watch mode
+npm test
+
+# Interactive test UI
+npm run test:ui
 ```
 
 ### Production Build
 ```bash
 npm run build
 npm run preview
+
+# Analyze bundle size
+npm run build:analyze
 ```
 
 ## 📁 Project Structure
@@ -99,6 +112,12 @@ interface ComponentContract {
 
 ## 🔧 Development Standards
 
+### Professional Development Tools
+- 🎯 **Event Monitor**: Real-time conflict detection (`eventMonitor.getReport()`)
+- 🔍 **Chrome DevTools AI**: Gemini-powered debugging insights
+- ✅ **Vitest Testing**: Lightning-fast unit tests with coverage
+- 📊 **Bundle Analyzer**: Visualize and optimize bundle size
+
 ### Anti-Patterns Avoided
 - ❌ **Dual Provider Patterns**: Prevents context conflicts
 - ❌ **Mock Data Infections**: Real integrations from day one
@@ -154,6 +173,12 @@ interface ComponentContract {
 - Template system for rapid component creation
 
 ## 📖 Documentation
+
+### Developer Guides
+- **[Development Guide](./docs/DEVELOPMENT_GUIDE.md)**: Complete development workflow
+- **[Chrome DevTools AI](./docs/CHROME_DEVTOOLS_AI.md)**: AI-powered debugging
+- **[Vitest Testing](./docs/VITEST_TESTING.md)**: Testing framework guide
+- **[Bundle Analyzer](./docs/BUNDLE_ANALYZER.md)**: Bundle optimization
 
 ### Quarterly Maintenance
 - **GitHub Repository**: Knowledge preservation system

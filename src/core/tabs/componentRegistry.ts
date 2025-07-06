@@ -1,18 +1,20 @@
 import { ComponentType } from 'react'
 import { loadComponentWithMetadata, getComponentMetadata } from './enhancedComponentRegistry'
 
-// Component registry for dynamic imports with metadata injection
+// Component registry - Analytics and Documentation only
 export const componentRegistry: Record<string, () => Promise<{ default: ComponentType<any> }>> = {
-  // Portfolio only - empty
-  Portfolio: () => import('../../components/EmptyPortfolio').then(m => ({ default: m.EmptyPortfolio })),
-  // Analytics dashboard
-  Analytics: () => import('../../components/analytics/AnalyticsDashboardExample').then(m => ({ default: m.AnalyticsDashboardExample }))
+  // Analytics tab - ready for component selection
+  Analytics: () => import('../../components/EmptyTab').then(m => ({ 
+    default: () => m.EmptyTab({ title: 'Analytics' }) 
+  })),
+  // Documentation viewer
+  Documentation: () => import('../../components/DocumentationViewerFixed').then(m => ({ default: m.DocumentationViewerFixed }))
 }
 
-// Component names mapping
+// Component names mapping - Analytics and Documentation only
 export const COMPONENT_NAMES: Record<string, string> = {
-  Portfolio: 'Portfolio',
-  Analytics: 'Analytics'
+  Analytics: 'Analytics',
+  Documentation: 'Documentation'
 }
 
 // Helper function to register new components dynamically

@@ -52,22 +52,21 @@ interface TabLayoutContextValue {
   toggleTabGridLayout: (tabId: string, enabled: boolean) => void
 }
 
-// Default tabs configuration - Portfolio and Analytics
+// Default tabs configuration - Analytics and Documentation only
 const DEFAULT_TABS: TabConfig[] = [
-  {
-    id: 'portfolio',
-    name: 'Portfolio',
-    component: 'Portfolio',
-    icon: 'briefcase',
-    closable: false
-  },
   {
     id: 'analytics',
     name: 'Analytics',
     component: 'Analytics',
     icon: 'bar-chart-2',
-    closable: false,
-    gridLayoutEnabled: true
+    closable: false
+  },
+  {
+    id: 'documentation',
+    name: 'Docs',
+    component: 'Documentation',
+    icon: 'book-open',
+    closable: false
   }
 ]
 
@@ -97,18 +96,22 @@ interface TabLayoutProviderProps {
 export function TabLayoutProvider({ children }: TabLayoutProviderProps) {
   const [layouts, setLayouts] = useState<TabLayout[]>([DEFAULT_LAYOUT])
   const [currentLayout, setCurrentLayout] = useState<TabLayout>(DEFAULT_LAYOUT)
-  const [activeTabId, setActiveTabId] = useState<string>('portfolio')
+  const [activeTabId, setActiveTabId] = useState<string>('analytics')
 
   // Load saved layouts from localStorage on mount
   useEffect(() => {
+    console.log('TabLayoutManager: Loading layouts from localStorage')
     const savedLayouts = localStorage.getItem('gzc-intel-layouts')
     if (savedLayouts) {
       try {
         const parsed = JSON.parse(savedLayouts)
+        console.log('TabLayoutManager: Found saved layouts:', parsed)
         setLayouts([DEFAULT_LAYOUT, ...parsed])
       } catch (e) {
         console.error('Failed to load saved layouts:', e)
       }
+    } else {
+      console.log('TabLayoutManager: No saved layouts, using defaults')
     }
 
     // Load last active layout

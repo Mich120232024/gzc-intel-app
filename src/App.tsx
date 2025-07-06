@@ -4,87 +4,111 @@ import { BrowserRouter as Router } from 'react-router-dom'
 // PROFESSIONAL ARCHITECTURE: Unified provider system (no conflicts)
 import { UnifiedProvider } from './core/providers/UnifiedProvider'
 import { GridProvider } from './core/layout'
-import { TabLayoutProvider, TabBar } from './core/tabs'
+import { TabLayoutProvider } from './core/tabs'
+import { ProfessionalHeader } from './components/ProfessionalHeader'
 import { EnhancedComponentLoader } from './core/tabs/EnhancedComponentLoader'
 import { MarketIntelPanel } from './components/MarketIntelPanel'
 import { UserProvider } from './contexts/UserContext'
+import { ThemeProvider, useTheme } from './contexts/ThemeContext'
 import { EnhancedErrorBoundary } from './components/EnhancedErrorBoundary'
+import { SentryErrorBoundary } from './config/sentry'
 
 import './styles/globals.css'
 import './styles/quantum.css'
 import 'react-grid-layout/css/styles.css'
 import 'react-resizable/css/styles.css'
 
-function App() {
-  // Remove any data-theme attributes to use quantum theme only
-  document.documentElement.removeAttribute('data-theme')
-
+// Inner app component that uses theme
+function AppContent() {
+  const { currentTheme } = useTheme()
+  
   return (
-    <EnhancedErrorBoundary componentName="App">
-      <UnifiedProvider>
-        <UserProvider>
-          <GridProvider>
-            <TabLayoutProvider>
-              <Router>
-                    <div className="min-h-screen flex flex-col" style={{ backgroundColor: '#0a0a0a', color: 'rgba(248, 246, 240, 0.9)' }}>
-                      {/* Tab Bar with integrated header - single line */}
-                      <TabBar />
-                      
-                      {/* Main Layout with Market Intel Panel */}
-                      <div className="flex flex-1 overflow-hidden" style={{ paddingBottom: '40px' }}>
-                        {/* Market Intel Panel - Left side */}
-                        <MarketIntelPanel />
-                        
-                        {/* Main Content Area - Right side */}
-                        <main className="flex-1 overflow-hidden" style={{ backgroundColor: '#0a0a0a' }}>
-                          <EnhancedComponentLoader />
-                        </main>
-                      </div>
-                      
-                      {/* Next-Gen Status Bar - matching PMS NextGen */}
-                      <div style={{
-                        position: "fixed",
-                        bottom: 0,
-                        left: 0,
-                        right: 0,
-                        backgroundColor: "rgba(26, 26, 26, 0.93)",
-                        borderTop: "1px solid #3a3a3a",
-                        padding: "6px 16px",
-                        fontSize: "12px",
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "center",
-                        height: "40px",
-                        zIndex: 1000,
-                        backdropFilter: "blur(12px)"
-                      }}>
-                        <div style={{ display: "flex", gap: "16px", alignItems: "center" }}>
-                          <span style={{ color: "#ABD38F" }}>● All Systems Operational</span>
-                          <span>Latency: 8ms</span>
-                          <span>AI Models: 12/12 Online</span>
-                          <span>Blockchain Sync: 100%</span>
-                          <span>Layout: LG</span>
-                        </div>
-                        <div style={{ display: "flex", gap: "16px", alignItems: "center" }}>
-                          <span>Gas: 45 gwei</span>
-                          <span>BTC: $67,234</span>
-                          <span>ETH: $3,456</span>
-                          <span style={{ color: "#b0b0b0" }}>
-                            24h P&L: <span style={{ color: "#ABD38F" }}>
-                              +$12,497.97
-                            </span>
-                          </span>
-                        </div>
-                      </div>
-                      
-                      {/* Debug Panel removed */}
-                    </div>
-              </Router>
-            </TabLayoutProvider>
-          </GridProvider>
-        </UserProvider>
-      </UnifiedProvider>
-    </EnhancedErrorBoundary>
+    <div className="min-h-screen flex flex-col" style={{ 
+      backgroundColor: currentTheme.background, 
+      color: currentTheme.text 
+    }}>
+      {/* Professional Header from port 3200 */}
+      <ProfessionalHeader />
+      
+      {/* Main Layout with Market Intel Panel */}
+      <div className="flex flex-1 overflow-hidden" style={{ position: 'relative' }}>
+        {/* Market Intel Panel - Left side */}
+        <MarketIntelPanel />
+        
+        {/* Main Content Area - Right side */}
+        <main className="flex-1 overflow-hidden" style={{ 
+          backgroundColor: currentTheme.background, 
+          paddingBottom: '40px' 
+        }}>
+          <EnhancedComponentLoader />
+        </main>
+      </div>
+      
+      {/* Next-Gen Status Bar - matching PMS NextGen */}
+      <div style={{
+        position: "fixed",
+        bottom: 0,
+        left: 0,
+        right: 0,
+        backgroundColor: currentTheme.surface + 'EE',
+        borderTop: `1px solid ${currentTheme.border}`,
+        padding: "6px 16px",
+        fontSize: "12px",
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center",
+        height: "40px",
+        zIndex: 1000,
+        backdropFilter: "blur(12px)"
+      }}>
+        <div style={{ display: "flex", gap: "16px", alignItems: "center" }}>
+          <span style={{ color: currentTheme.success }}>● All Systems Operational</span>
+          <span style={{ color: currentTheme.textSecondary }}>Latency: 8ms</span>
+          <span style={{ color: currentTheme.textSecondary }}>AI Models: 12/12 Online</span>
+          <span style={{ color: currentTheme.textSecondary }}>Blockchain Sync: 100%</span>
+          <span style={{ color: currentTheme.textSecondary }}>Layout: LG</span>
+        </div>
+        <div style={{ display: "flex", gap: "16px", alignItems: "center" }}>
+          <span style={{ color: currentTheme.textSecondary }}>Gas: 45 gwei</span>
+          <span style={{ color: currentTheme.textSecondary }}>BTC: $67,234</span>
+          <span style={{ color: currentTheme.textSecondary }}>ETH: $3,456</span>
+          <span style={{ color: currentTheme.textSecondary }}>
+            24h P&L: <span style={{ color: currentTheme.success }}>
+              +$12,497.97
+            </span>
+          </span>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function App() {
+  return (
+    <SentryErrorBoundary fallback={({ error }) => (
+      <div style={{ padding: '20px', color: '#ff0000' }}>
+        <h2>Application Error</h2>
+        <details style={{ whiteSpace: 'pre-wrap' }}>
+          {error?.toString()}
+        </details>
+      </div>
+    )} showDialog>
+      <ThemeProvider>
+        <EnhancedErrorBoundary componentName="App">
+          <UnifiedProvider>
+            <UserProvider>
+              <GridProvider>
+                <TabLayoutProvider>
+                  <Router>
+                    <AppContent />
+                  </Router>
+                </TabLayoutProvider>
+              </GridProvider>
+            </UserProvider>
+          </UnifiedProvider>
+        </EnhancedErrorBoundary>
+      </ThemeProvider>
+    </SentryErrorBoundary>
   )
 }
 
