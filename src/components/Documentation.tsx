@@ -13,11 +13,12 @@ interface DocSection {
   content: React.ReactNode;
 }
 
-// Force re-render mermaid when tab becomes active
+// Mermaid diagram with zoom and scroll controls
 const MermaidDiagram: React.FC<{ chart: string; id: string; isActive: boolean }> = ({ chart, id, isActive }) => {
   const { currentTheme: theme } = useTheme();
   const containerRef = useRef<HTMLDivElement>(null);
   const [renderKey, setRenderKey] = useState(0);
+  const [zoomLevel, setZoomLevel] = useState(1);
   
   // Force re-render when tab becomes active or theme changes
   useEffect(() => {
@@ -34,13 +35,12 @@ const MermaidDiagram: React.FC<{ chart: string; id: string; isActive: boolean }>
           // Clear any existing content
           containerRef.current.innerHTML = '';
           
-          // Create a new div for this render
+          // Create a new div for this render with fixed sizing
           const diagramDiv = document.createElement('div');
           diagramDiv.className = 'mermaid';
           diagramDiv.textContent = chart;
-          diagramDiv.style.width = '100%';
-          diagramDiv.style.height = '100%';
-          diagramDiv.style.minHeight = '250px';
+          diagramDiv.style.width = '800px';  // Fixed width
+          diagramDiv.style.height = '400px'; // Fixed height
           containerRef.current.appendChild(diagramDiv);
           
           // Render with mermaid
@@ -48,13 +48,13 @@ const MermaidDiagram: React.FC<{ chart: string; id: string; isActive: boolean }>
             nodes: [diagramDiv]
           });
           
-          // Scale up the SVG after rendering
+          // Apply zoom to the SVG
           const svg = diagramDiv.querySelector('svg');
           if (svg) {
-            svg.style.maxWidth = '100%';
-            svg.style.height = 'auto';
-            svg.style.transform = 'scale(1.1)';
-            svg.style.transformOrigin = 'center';
+            svg.style.width = '100%';
+            svg.style.height = '100%';
+            svg.style.transform = `scale(${zoomLevel})`;
+            svg.style.transformOrigin = 'top left';
           }
           
         } catch (error) {
@@ -78,49 +78,118 @@ const MermaidDiagram: React.FC<{ chart: string; id: string; isActive: boolean }>
       // Delay to ensure DOM is ready
       setTimeout(renderDiagram, 300);
     }
-  }, [renderKey, isActive, chart, id, theme]);
+  }, [renderKey, isActive, chart, id, theme, zoomLevel]);
   
   return (
     <div 
       style={{ 
-        textAlign: 'center', 
-        margin: '12px 0',
+        margin: '8px 0',
         backgroundColor: theme.surfaceAlt,
         border: `1px solid ${theme.border}`,
         borderRadius: '4px',
-        padding: '20px',
-        overflow: 'auto'
+        overflow: 'hidden'
       }}
     >
-      <div 
-        ref={containerRef}
-        style={{ 
-          background: 'transparent', 
-          margin: 0,
-          minHeight: '280px',
-          width: '100%',
+      {/* Zoom Controls */}
+      {isActive && (
+        <div style={{
+          padding: '8px 12px',
+          backgroundColor: theme.surface,
+          borderBottom: `1px solid ${theme.border}`,
           display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          overflow: 'hidden'
+          justifyContent: 'space-between',
+          alignItems: 'center'
+        }}>
+          <span style={{ fontSize: '10px', color: theme.textSecondary }}>
+            Diagram Controls
+          </span>
+          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+            <button
+              onClick={() => setZoomLevel(prev => Math.max(0.5, prev - 0.1))}
+              style={{
+                padding: '4px 8px',
+                fontSize: '10px',
+                backgroundColor: theme.background,
+                border: `1px solid ${theme.border}`,
+                borderRadius: '2px',
+                color: theme.text,
+                cursor: 'pointer'
+              }}
+            >
+              −
+            </button>
+            <span style={{ fontSize: '10px', color: theme.text, minWidth: '40px', textAlign: 'center' }}>
+              {Math.round(zoomLevel * 100)}%
+            </span>
+            <button
+              onClick={() => setZoomLevel(prev => Math.min(2, prev + 0.1))}
+              style={{
+                padding: '4px 8px',
+                fontSize: '10px',
+                backgroundColor: theme.background,
+                border: `1px solid ${theme.border}`,
+                borderRadius: '2px',
+                color: theme.text,
+                cursor: 'pointer'
+              }}
+            >
+              +
+            </button>
+            <button
+              onClick={() => setZoomLevel(1)}
+              style={{
+                padding: '4px 8px',
+                fontSize: '10px',
+                backgroundColor: theme.background,
+                border: `1px solid ${theme.border}`,
+                borderRadius: '2px',
+                color: theme.text,
+                cursor: 'pointer'
+              }}
+            >
+              Reset
+            </button>
+          </div>
+        </div>
+      )}
+      
+      {/* Scrollable Diagram Container */}
+      <div 
+        style={{ 
+          height: '300px',
+          overflow: 'auto',
+          backgroundColor: theme.background
         }}
       >
-        {!isActive && (
-          <div style={{ 
-            color: theme.textTertiary, 
-            fontSize: '12px'
-          }}>
-            Switch to this tab to view diagram
-          </div>
-        )}
-        {isActive && renderKey === 0 && (
-          <div style={{ 
-            color: theme.textTertiary, 
-            fontSize: '12px'
-          }}>
-            Preparing diagram...
-          </div>
-        )}
+        <div 
+          ref={containerRef}
+          style={{ 
+            background: 'transparent', 
+            margin: 0,
+            minWidth: '800px',
+            minHeight: '400px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
+          }}
+        >
+          {!isActive && (
+            <div style={{ 
+              color: theme.textTertiary, 
+              fontSize: '12px'
+            }}>
+              Switch to this tab to view diagram
+            </div>
+          )}
+          {isActive && renderKey === 0 && (
+            <div style={{ 
+              color: theme.textTertiary, 
+              fontSize: '12px'
+            }}>
+              Preparing diagram...
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -555,59 +624,52 @@ export const themes: Record<string, Theme> = {
 
   return (
     <div style={{
-      minHeight: 'calc(100vh - 100px)',
-      padding: '12px',
+      minHeight: 'calc(100vh - 60px)',
+      padding: '8px',
       color: theme.text
     }}>
-      <h1 style={{
-        fontSize: '14px',
-        fontWeight: '500',
-        marginBottom: '8px',
-        color: theme.textSecondary,
-        opacity: 0.8
-      }}>
-        Documentation
-      </h1>
-
       <div style={{
         display: 'flex',
-        gap: '12px',
-        height: 'calc(100vh - 160px)'
+        gap: '8px',
+        height: 'calc(100vh - 80px)'
       }}>
         {/* Navigation */}
         <div style={{
-          width: '250px',
+          width: '200px',
           backgroundColor: theme.surface,
           borderRadius: '4px',
           border: `1px solid ${theme.border}`,
-          padding: '12px',
+          padding: '8px',
           overflow: 'auto',
           display: 'flex',
           flexDirection: 'column'
         }}>
           <h3 style={{
-            fontSize: theme.typography.h3.fontSize,
+            fontSize: '10px',
             fontWeight: theme.typography.h3.fontWeight,
-            marginBottom: '12px',
-            color: theme.textSecondary
+            marginBottom: '8px',
+            color: theme.textSecondary,
+            textTransform: 'uppercase',
+            letterSpacing: '0.5px'
           }}>
-            Table of Contents
+            Contents
           </h3>
           {sections.map((section, index) => (
             <div
               key={index}
               onClick={() => setActiveSection(index)}
               style={{
-                padding: '8px 12px',
-                marginBottom: '4px',
+                padding: '6px 8px',
+                marginBottom: '2px',
                 borderRadius: '2px',
                 cursor: 'pointer',
+                fontSize: '11px',
                 backgroundColor: activeSection === index 
                   ? theme.name.includes('Light') || theme.name === 'Arctic' || theme.name === 'Parchment' || theme.name === 'Pearl'
                     ? 'rgba(0, 0, 0, 0.05)'
                     : 'rgba(255, 255, 255, 0.05)'
                   : 'transparent',
-                borderLeft: activeSection === index ? `3px solid ${theme.primary}` : '3px solid transparent',
+                borderLeft: activeSection === index ? `2px solid ${theme.primary}` : '2px solid transparent',
                 transition: 'all 0.2s ease',
                 color: activeSection === index ? theme.primary : theme.text
               }}
@@ -635,15 +697,15 @@ export const themes: Record<string, Theme> = {
           backgroundColor: theme.surface,
           borderRadius: '4px',
           border: `1px solid ${theme.border}`,
-          padding: '24px',
+          padding: '16px',
           overflow: 'auto',
           display: 'flex',
           flexDirection: 'column'
         }}>
           <h2 style={{
-            fontSize: theme.typography.h2.fontSize,
-            fontWeight: theme.typography.h2.fontWeight,
-            marginBottom: '16px',
+            fontSize: '13px',
+            fontWeight: '600',
+            marginBottom: '12px',
             color: theme.text
           }}>
             {sections[activeSection].title}
@@ -658,21 +720,21 @@ export const themes: Record<string, Theme> = {
       </div>
 
       <div style={{
-        marginTop: '12px',
-        padding: '8px 12px',
+        marginTop: '8px',
+        padding: '6px 8px',
         backgroundColor: theme.surface,
         borderRadius: '4px',
         border: `1px solid ${theme.border}`,
         textAlign: 'center',
-        fontSize: theme.typography.bodySmall.fontSize,
+        fontSize: '9px',
         color: theme.textSecondary,
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center'
       }}>
-        <span>Last Updated: {new Date().toLocaleDateString()}</span>
-        <span>Version: 1.0.0</span>
-        <span>Theme: {theme.name}</span>
+        <span>Updated: {new Date().toLocaleDateString()}</span>
+        <span>v1.0.0</span>
+        <span>{theme.name}</span>
       </div>
     </div>
   );
