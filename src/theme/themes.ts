@@ -411,62 +411,62 @@ export const themes: Record<string, Theme> = {
     ...sharedConfig
   },
   
-  // Parchment - Warm sepia light theme
+  // Parchment - Warm silver theme
   'parchment': {
     name: 'Parchment',
-    primary: '#8B6914',           // Warm bronze/gold
-    secondary: '#A67C00',         // Lighter bronze
-    accent: '#BF9B30',            // Light gold
-    background: '#FAF8F3',        // Warm cream
-    surface: '#FFFDFB',
-    surfaceAlt: '#F5F2E8',        // Warm beige
-    text: '#3E2723',              // Dark brown
-    textSecondary: '#5D4037',
-    textTertiary: '#795548',
-    border: '#D7CCC8',            // Light brown
-    borderLight: '#EFEBE9',
+    primary: '#6B7280',           // Warm grey-silver
+    secondary: '#8B95A6',         // Lighter silver-blue
+    accent: '#A5AFBF',            // Light silver
+    background: '#FAF9F7',        // Warm white with silver tone
+    surface: '#FFFFFF',
+    surfaceAlt: '#F5F4F2',        // Warm silver-grey
+    text: '#2D3436',              // Charcoal with warm undertone
+    textSecondary: '#4A5255',
+    textTertiary: '#636E72',
+    border: '#DDD9D5',            // Warm silver border
+    borderLight: '#EDEBE8',
     success: GZC_GREEN.base,      // Keep GZC green for success
-    danger: '#C62828',
-    warning: '#F57C00',
-    info: '#0288D1',
-    muted: '#8D6E63',
-    gradient: 'linear-gradient(135deg, #8B6914 0%, #BF9B30 100%)',
-    headerColor: '#8B6914',
+    danger: '#E17055',            // Softer coral red
+    warning: '#FDCB6E',           // Warm yellow
+    info: '#74B9FF',              // Soft blue
+    muted: '#95A3A6',
+    gradient: 'linear-gradient(135deg, #6B7280 0%, #A5AFBF 100%)',
+    headerColor: '#6B7280',
     shadows: {
-      sm: '0 1px 2px rgba(62, 39, 35, 0.08)',
-      md: '0 3px 6px rgba(62, 39, 35, 0.12)',
-      lg: '0 8px 16px rgba(62, 39, 35, 0.15)',
-      xl: '0 16px 32px rgba(62, 39, 35, 0.18)'
+      sm: '0 1px 2px rgba(45, 52, 54, 0.06)',
+      md: '0 3px 6px rgba(45, 52, 54, 0.10)',
+      lg: '0 8px 16px rgba(45, 52, 54, 0.12)',
+      xl: '0 16px 32px rgba(45, 52, 54, 0.15)'
     },
     ...sharedConfig
   },
   
-  // Pearl - Soft purple-tinted light theme
+  // Pearl - Soft pearl light theme with blue accents
   'pearl': {
     name: 'Pearl',
-    primary: '#7C4DFF',           // Material purple
-    secondary: '#9575CD',         // Lighter purple
-    accent: '#B39DDB',            // Light purple
-    background: '#FAF9FB',        // Hint of purple
+    primary: '#4A6FA5',           // Soft steel blue
+    secondary: '#6B8EBF',         // Lighter steel blue
+    accent: '#8BA6D0',            // Light blue accent
+    background: '#FAFBFC',        // Pearl white with cool tone
     surface: '#FFFFFF',
-    surfaceAlt: '#F3F0F7',        // Light lavender
-    text: '#2D1B69',              // Deep purple text
-    textSecondary: '#4A3A7C',
-    textTertiary: '#6B5B95',
-    border: '#DDD6E8',            // Light purple
-    borderLight: '#EDE7F3',
+    surfaceAlt: '#F0F3F7',        // Light pearl grey
+    text: '#1E3A5F',              // Dark blue text
+    textSecondary: '#3D5875',
+    textTertiary: '#5C7089',
+    border: '#D6E0E9',            // Light blue-grey
+    borderLight: '#E7EEF4',
     success: GZC_GREEN.base,      // Keep GZC green for success
-    danger: '#E91E63',
-    warning: '#FFA726',
-    info: '#5C6BC0',
-    muted: '#9575CD',
-    gradient: 'linear-gradient(135deg, #7C4DFF 0%, #B39DDB 100%)',
-    headerColor: '#7C4DFF',
+    danger: '#E57373',
+    warning: '#FFB74D',
+    info: '#64B5F6',
+    muted: '#90A4AE',
+    gradient: 'linear-gradient(135deg, #4A6FA5 0%, #8BA6D0 100%)',
+    headerColor: '#4A6FA5',
     shadows: {
-      sm: '0 2px 4px rgba(124, 77, 255, 0.08)',
-      md: '0 4px 8px rgba(124, 77, 255, 0.12)',
-      lg: '0 12px 24px rgba(124, 77, 255, 0.16)',
-      xl: '0 24px 48px rgba(124, 77, 255, 0.20)'
+      sm: '0 2px 4px rgba(74, 111, 165, 0.08)',
+      md: '0 4px 8px rgba(74, 111, 165, 0.12)',
+      lg: '0 12px 24px rgba(74, 111, 165, 0.16)',
+      xl: '0 24px 48px rgba(74, 111, 165, 0.20)'
     },
     ...sharedConfig
   }

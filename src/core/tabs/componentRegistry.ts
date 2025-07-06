@@ -8,7 +8,7 @@ export const componentRegistry: Record<string, () => Promise<{ default: Componen
     default: () => m.EmptyTab({ title: 'Analytics' }) 
   })),
   // Documentation viewer
-  Documentation: () => import('../../components/DocumentationViewerFixed').then(m => ({ default: m.DocumentationViewerFixed }))
+  Documentation: () => import('../../components/Documentation').then(m => ({ default: m.Documentation }))
 }
 
 // Component names mapping - Analytics and Documentation only

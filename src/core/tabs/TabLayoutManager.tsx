@@ -63,7 +63,7 @@ const DEFAULT_TABS: TabConfig[] = [
   },
   {
     id: 'documentation',
-    name: 'Docs',
+    name: 'Documentation',
     component: 'Documentation',
     icon: 'book-open',
     closable: false
