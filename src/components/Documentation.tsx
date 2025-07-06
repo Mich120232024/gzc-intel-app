@@ -13,12 +13,16 @@ interface DocSection {
   content: React.ReactNode;
 }
 
-// Mermaid diagram with zoom and scroll controls
+// Mermaid diagram with zoom, scroll, and drag controls
 const MermaidDiagram: React.FC<{ chart: string; id: string; isActive: boolean }> = ({ chart, id, isActive }) => {
   const { currentTheme: theme } = useTheme();
   const containerRef = useRef<HTMLDivElement>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [renderKey, setRenderKey] = useState(0);
   const [zoomLevel, setZoomLevel] = useState(1);
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const [scrollStart, setScrollStart] = useState({ x: 0, y: 0 });
   
   // Force re-render when tab becomes active or theme changes
   useEffect(() => {
@@ -79,6 +83,42 @@ const MermaidDiagram: React.FC<{ chart: string; id: string; isActive: boolean }>
       setTimeout(renderDiagram, 300);
     }
   }, [renderKey, isActive, chart, id, theme, zoomLevel]);
+
+  // Mouse drag handlers
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (scrollContainerRef.current) {
+      setIsDragging(true);
+      setDragStart({ x: e.clientX, y: e.clientY });
+      setScrollStart({ 
+        x: scrollContainerRef.current.scrollLeft, 
+        y: scrollContainerRef.current.scrollTop 
+      });
+      e.preventDefault();
+    }
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (isDragging && scrollContainerRef.current) {
+      const deltaX = dragStart.x - e.clientX;
+      const deltaY = dragStart.y - e.clientY;
+      
+      scrollContainerRef.current.scrollLeft = scrollStart.x + deltaX;
+      scrollContainerRef.current.scrollTop = scrollStart.y + deltaY;
+    }
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
+
+  // Global mouse up handler
+  useEffect(() => {
+    if (isDragging) {
+      const handleGlobalMouseUp = () => setIsDragging(false);
+      document.addEventListener('mouseup', handleGlobalMouseUp);
+      return () => document.removeEventListener('mouseup', handleGlobalMouseUp);
+    }
+  }, [isDragging]);
   
   return (
     <div 
@@ -101,7 +141,7 @@ const MermaidDiagram: React.FC<{ chart: string; id: string; isActive: boolean }>
           alignItems: 'center'
         }}>
           <span style={{ fontSize: '10px', color: theme.textSecondary }}>
-            Diagram Controls
+            Zoom: {Math.round(zoomLevel * 100)}% • Click & drag to pan
           </span>
           <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
             <button
@@ -118,7 +158,7 @@ const MermaidDiagram: React.FC<{ chart: string; id: string; isActive: boolean }>
             >
               −
             </button>
-            <span style={{ fontSize: '10px', color: theme.text, minWidth: '40px', textAlign: 'center' }}>
+            <span style={{ fontSize: '10px', color: theme.text, minWidth: '30px', textAlign: 'center' }}>
               {Math.round(zoomLevel * 100)}%
             </span>
             <button
@@ -153,13 +193,19 @@ const MermaidDiagram: React.FC<{ chart: string; id: string; isActive: boolean }>
         </div>
       )}
       
-      {/* Scrollable Diagram Container */}
+      {/* Scrollable Diagram Container with Drag Support */}
       <div 
+        ref={scrollContainerRef}
         style={{ 
           height: '300px',
           overflow: 'auto',
-          backgroundColor: theme.background
+          backgroundColor: theme.background,
+          cursor: isDragging ? 'grabbing' : 'grab',
+          userSelect: 'none'
         }}
+        onMouseDown={handleMouseDown}
+        onMouseMove={handleMouseMove}
+        onMouseUp={handleMouseUp}
       >
         <div 
           ref={containerRef}
@@ -170,7 +216,8 @@ const MermaidDiagram: React.FC<{ chart: string; id: string; isActive: boolean }>
             minHeight: '400px',
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'center'
+            justifyContent: 'center',
+            pointerEvents: isDragging ? 'none' : 'auto'
           }}
         >
           {!isActive && (
