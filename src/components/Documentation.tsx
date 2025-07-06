@@ -13,23 +13,15 @@ interface DocSection {
   content: React.ReactNode;
 }
 
-// Mermaid component for rendering diagrams
+// Simplified Mermaid component for reliable rendering
 const MermaidDiagram: React.FC<{ chart: string; id: string }> = ({ chart, id }) => {
   const { currentTheme: theme } = useTheme();
-  const [isRendered, setIsRendered] = useState(false);
+  const [key, setKey] = useState(0);
   
+  // Force re-render when theme changes
   useEffect(() => {
-    if (window.mermaid && !isRendered) {
-      setTimeout(() => {
-        try {
-          window.mermaid.contentLoaded();
-          setIsRendered(true);
-        } catch (e) {
-          console.error('Mermaid render error:', e);
-        }
-      }, 100);
-    }
-  }, [isRendered]);
+    setKey(prev => prev + 1);
+  }, [theme.name]);
   
   return (
     <div 
@@ -43,9 +35,17 @@ const MermaidDiagram: React.FC<{ chart: string; id: string }> = ({ chart, id }) 
         overflow: 'auto'
       }}
     >
-      <pre className="mermaid" style={{ background: 'transparent', margin: 0 }}>
+      <div 
+        key={key}
+        className="mermaid" 
+        style={{ 
+          background: 'transparent', 
+          margin: 0,
+          minHeight: '200px'
+        }}
+      >
         {chart}
-      </pre>
+      </div>
     </div>
   );
 };
@@ -66,43 +66,37 @@ export const Documentation: React.FC = () => {
           </p>
           <MermaidDiagram 
             id="current-architecture"
-            chart={`flowchart TB
-    subgraph frontend ["Frontend - Port 3500"]
-        UI["React + TypeScript<br/>Vite Dev Server"]
-        Theme["Theme System<br/>11 Professional Themes"]
-        Tabs["Tab Management<br/>Dynamic Components"]
-        DnD["React Grid Layout<br/>Drag & Drop"]
+            chart={`graph TB
+    subgraph Frontend ["Frontend - Port 3500"]
+        UI["React + TypeScript"]
+        Theme["Theme System - 11 Themes"]
+        Tabs["Tab Management"]
+        DnD["React Grid Layout"]
     end
     
-    subgraph features ["Core Features"]
-        Header["Professional Header<br/>P&L Display"]
-        Intel["Market Intel Panel<br/>AI Agents"]
-        Docs["Documentation<br/>Mermaid Diagrams"]
-        Analytics["Analytics Tab<br/>Ready for Widgets"]
+    subgraph Features ["Core Features"]
+        Header["Professional Header"]
+        Intel["Market Intel Panel"]
+        Docs["Documentation"]
+        Analytics["Analytics Tab"]
     end
     
-    subgraph state ["State Management"]
-        Context["React Context<br/>Theme Provider"]
-        Local["LocalStorage<br/>Persistence"]
-        Memory["View Memory<br/>Dual System"]
-        Inspector["Memory Inspector<br/>Dev Tools"]
+    subgraph State ["State Management"]
+        Context["React Context"]
+        Local["LocalStorage"]
+        Memory["View Memory"]
+        Inspector["Memory Inspector"]
     end
+    
+    Frontend --> Features
+    Features --> State
     
     UI --> Theme
     UI --> Tabs
-    UI --> DnD
-    
-    Theme --> features
-    Tabs --> features
-    
     Theme --> Context
     Context --> Local
     Context --> Memory
-    Memory --> Inspector
-    
-    style frontend fill:#1A1A1A,stroke:#7A9E65,color:#F0F0F0
-    style features fill:#2A2A2A,stroke:#95BD78,color:#E0E0E0
-    style state fill:#142236,stroke:#4db8e8,color:#FFFFFF`}
+    Memory --> Inspector`}
           />
         </div>
       )
@@ -116,40 +110,36 @@ export const Documentation: React.FC = () => {
           </p>
           <MermaidDiagram 
             id="theme-system"
-            chart={`flowchart TD
-    subgraph dark ["Dark Themes"]
-        GD["GZC Dark<br/>Institutional"]
-        AD["Analytics Dark<br/>Data Viz"]
-        TG["Terminal Green<br/>Bloomberg Style"]
-        TO["Trading Operations<br/>High Contrast"]
-        MT["Midnight Trading<br/>Ultra Dark"]
-        QA["Quantum Analytics<br/>Gradient"]
-        PR["Professional<br/>Sea Blue"]
+            chart={`graph TB
+    subgraph DarkThemes ["Dark Themes"]
+        GD["GZC Dark - Institutional"]
+        AD["Analytics Dark - Data Viz"]
+        TG["Terminal Green - Bloomberg Style"]
+        TO["Trading Operations - High Contrast"]
+        MT["Midnight Trading - Ultra Dark"]
+        QA["Quantum Analytics - Gradient"]
+        PR["Professional - Sea Blue"]
     end
     
-    subgraph light ["Light Themes"]
-        GL["GZC Light<br/>Clean Professional"]
-        AR["Arctic<br/>Cool Blue-Grey"]
-        PA["Parchment<br/>Warm Silver"]
-        PE["Pearl<br/>Steel Blue"]
+    subgraph LightThemes ["Light Themes"]
+        GL["GZC Light - Clean Professional"]
+        AR["Arctic - Cool Blue-Grey"]
+        PA["Parchment - Warm Silver"]
+        PE["Pearl - Steel Blue"]
     end
     
-    subgraph features ["Theme System"]
+    subgraph ThemeSystem ["Theme System"]
         TP["Theme Provider"]
-        LS["LocalStorage<br/>Persistence"]
-        CV["CSS Variables<br/>Instant Switch"]
-        VM["View Memory<br/>Dual System"]
+        LS["LocalStorage Persistence"]
+        CV["CSS Variables"]
+        VM["View Memory System"]
     end
     
-    TP --> dark
-    TP --> light
+    TP --> DarkThemes
+    TP --> LightThemes
     TP --> LS
     TP --> CV
-    TP --> VM
-    
-    style dark fill:#2A2A2A,stroke:#7A9E65,color:#E0E0E0
-    style light fill:#F8F9FA,stroke:#5B7C4B,color:#1F2937
-    style features fill:#1A1A1A,stroke:#95BD78,color:#F0F0F0`}
+    TP --> VM`}
           />
           <div style={{
             backgroundColor: theme.surface,
@@ -176,41 +166,36 @@ export const Documentation: React.FC = () => {
           </p>
           <MermaidDiagram 
             id="component-architecture"
-            chart={`flowchart TD
-    App["App.tsx<br/>Entry Point"]
+            chart={`graph TD
+    App["App.tsx - Entry Point"]
     
-    subgraph providers ["Provider Layer"]
+    subgraph Providers ["Provider Layer"]
         TP["ThemeProvider"]
         TLP["TabLayoutProvider"]
         EB["ErrorBoundary"]
-        VM["ViewMemory<br/>Hook"]
+        VM["ViewMemory Hook"]
     end
     
-    subgraph core ["Core Components"]
-        PH["ProfessionalHeader<br/>Logo, Tabs, P&L"]
-        MIP["MarketIntelPanel<br/>AI Agents, Alerts"]
-        TC["TabContainer<br/>Content Area"]
+    subgraph Core ["Core Components"]
+        PH["ProfessionalHeader"]
+        MIP["MarketIntelPanel"]
+        TC["TabContainer"]
     end
     
-    subgraph tabs ["Tab Components"]
-        AT["Analytics Tab<br/>Empty State"]
-        DT["Documentation Tab<br/>This Page"]
+    subgraph Tabs ["Tab Components"]
+        AT["Analytics Tab"]
+        DT["Documentation Tab"]
     end
     
-    App --> providers
+    App --> Providers
+    Providers --> Core
+    Core --> Tabs
+    
     TP --> TLP
     TLP --> EB
-    EB --> core
     VM --> TP
-    
-    core --> tabs
-    PH --> tabs
     TC --> AT
-    TC --> DT
-    
-    style providers fill:#1A1A1A,stroke:#7A9E65,color:#F0F0F0
-    style core fill:#2A2A2A,stroke:#95BD78,color:#E0E0E0
-    style tabs fill:#3A3A3A,stroke:#ABD38F,color:#FFFFFF`}
+    TC --> DT`}
           />
         </div>
       )
@@ -459,52 +444,17 @@ export const themes: Record<string, Theme> = {
     script.src = 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js';
     script.async = true;
     script.onload = () => {
+      // Simple theme detection
       const isDarkTheme = !theme.name.includes('Light') && 
                          theme.name !== 'Arctic' && 
                          theme.name !== 'Parchment' && 
                          theme.name !== 'Pearl';
       
+      // Use mermaid's built-in themes
       window.mermaid.initialize({ 
         startOnLoad: true,
-        theme: 'base',
-        themeVariables: {
-          // Primary colors
-          primaryColor: theme.surface,
-          primaryTextColor: theme.text,
-          primaryBorderColor: theme.primary,
-          
-          // Background colors
-          background: theme.surface,
-          mainBkg: theme.surface,
-          secondBkg: theme.surfaceAlt,
-          tertiaryBkg: theme.background,
-          
-          // Border colors
-          nodeBorder: theme.border,
-          clusterBorder: theme.border,
-          edgeLabelBackground: theme.surface,
-          
-          // Text colors
-          textColor: theme.text,
-          labelTextColor: theme.text,
-          
-          // Node colors
-          nodeTextColor: theme.text,
-          
-          // Line colors
-          lineColor: theme.border,
-          
-          // Font
-          fontFamily: 'Inter, system-ui, sans-serif',
-          fontSize: '14px',
-          
-          // Dark mode
-          darkMode: isDarkTheme,
-          
-          // Cluster
-          clusterBkg: theme.surfaceAlt,
-          defaultLinkColor: theme.border
-        }
+        theme: isDarkTheme ? 'dark' : 'default',
+        securityLevel: 'loose'
       });
       setMermaidLoaded(true);
     };
@@ -517,55 +467,30 @@ export const themes: Record<string, Theme> = {
     };
   }, [theme]);
 
-  // Re-render Mermaid diagrams when section or theme changes
+  // Simple re-render when theme changes
   useEffect(() => {
     if (mermaidLoaded && window.mermaid) {
-      // Remove old SVGs
-      document.querySelectorAll('.mermaid svg').forEach(el => el.remove());
-      
-      // Clear mermaid internal state
-      if (window.mermaid.mermaidAPI && window.mermaid.mermaidAPI.reset) {
-        window.mermaid.mermaidAPI.reset();
-      }
-      
-      // Force re-initialization with current theme
+      // Simple theme detection
       const isDarkTheme = !theme.name.includes('Light') && 
                          theme.name !== 'Arctic' && 
                          theme.name !== 'Parchment' && 
                          theme.name !== 'Pearl';
       
+      // Re-initialize with correct theme
       window.mermaid.initialize({ 
         startOnLoad: true,
-        theme: 'base',
-        themeVariables: {
-          primaryColor: theme.surface,
-          primaryTextColor: theme.text,
-          primaryBorderColor: theme.primary,
-          background: theme.surface,
-          mainBkg: theme.surface,
-          secondBkg: theme.surfaceAlt,
-          tertiaryBkg: theme.background,
-          nodeBorder: theme.border,
-          clusterBorder: theme.border,
-          edgeLabelBackground: theme.surface,
-          textColor: theme.text,
-          labelTextColor: theme.text,
-          nodeTextColor: theme.text,
-          lineColor: theme.border,
-          fontFamily: 'Inter, system-ui, sans-serif',
-          fontSize: '14px',
-          darkMode: isDarkTheme,
-          clusterBkg: theme.surfaceAlt,
-          defaultLinkColor: theme.border
-        }
+        theme: isDarkTheme ? 'dark' : 'default',
+        securityLevel: 'loose'
       });
       
-      // Trigger re-render with delay
+      // Trigger re-render
       setTimeout(() => {
-        window.mermaid.contentLoaded();
-      }, 100);
+        if (window.mermaid.contentLoaded) {
+          window.mermaid.contentLoaded();
+        }
+      }, 200);
     }
-  }, [activeSection, mermaidLoaded, theme]);
+  }, [mermaidLoaded, theme.name]);
 
   return (
     <div style={{
