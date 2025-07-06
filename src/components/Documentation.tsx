@@ -76,7 +76,7 @@ const MermaidDiagram: React.FC<{ chart: string; id: string; isActive: boolean }>
         backgroundColor: theme.surfaceAlt,
         border: `1px solid ${theme.border}`,
         borderRadius: '4px',
-        padding: '20px',
+        padding: '24px',
         overflow: 'auto'
       }}
     >
@@ -85,7 +85,7 @@ const MermaidDiagram: React.FC<{ chart: string; id: string; isActive: boolean }>
         style={{ 
           background: 'transparent', 
           margin: 0,
-          minHeight: '200px',
+          minHeight: '300px',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center'
