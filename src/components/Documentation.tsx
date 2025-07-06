@@ -13,65 +13,60 @@ interface DocSection {
   content: React.ReactNode;
 }
 
-// Simple mermaid component that re-renders when visible
-const MermaidDiagram: React.FC<{ chart: string; id: string }> = ({ chart, id }) => {
+// Force re-render mermaid when tab becomes active
+const MermaidDiagram: React.FC<{ chart: string; id: string; isActive: boolean }> = ({ chart, id, isActive }) => {
   const { currentTheme: theme } = useTheme();
   const containerRef = useRef<HTMLDivElement>(null);
-  const [isVisible, setIsVisible] = useState(false);
+  const [renderKey, setRenderKey] = useState(0);
   
-  // Use intersection observer to detect when diagram becomes visible
+  // Force re-render when tab becomes active or theme changes
   useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        setIsVisible(entry.isIntersecting);
-      },
-      { threshold: 0.1 }
-    );
-    
-    if (containerRef.current) {
-      observer.observe(containerRef.current);
+    if (isActive) {
+      setRenderKey(prev => prev + 1);
     }
-    
-    return () => observer.disconnect();
-  }, []);
+  }, [isActive, theme.name]);
   
-  // Render diagram when visible and mermaid is loaded
+  // Render diagram when active
   useEffect(() => {
     const renderDiagram = async () => {
-      if (window.mermaid && containerRef.current && isVisible) {
+      if (window.mermaid && containerRef.current && isActive) {
         try {
-          // Create unique ID for this diagram
-          const uniqueId = `mermaid-${id}-${Date.now()}`;
-          containerRef.current.id = uniqueId;
+          // Clear any existing content
+          containerRef.current.innerHTML = '';
           
-          // Clear container
-          containerRef.current.innerHTML = chart;
+          // Create a new div for this render
+          const diagramDiv = document.createElement('div');
+          diagramDiv.className = 'mermaid';
+          diagramDiv.textContent = chart;
+          containerRef.current.appendChild(diagramDiv);
           
-          // Render
+          // Render with mermaid
           await window.mermaid.run({
-            nodes: [containerRef.current]
+            nodes: [diagramDiv]
           });
           
         } catch (error) {
           console.error(`Mermaid rendering error for ${id}:`, error);
           if (containerRef.current) {
-            containerRef.current.innerHTML = `<div style="padding: 20px; background: rgba(255,0,0,0.1); border-radius: 4px;">
-              <p style="margin: 0; color: ${theme.textSecondary};">Diagram rendering failed</p>
-              <details style="margin-top: 8px;">
-                <summary style="cursor: pointer; color: ${theme.textTertiary};">Show diagram code</summary>
-                <pre style="margin-top: 8px; font-size: 10px; white-space: pre-wrap;">${chart}</pre>
-              </details>
-            </div>`;
+            containerRef.current.innerHTML = `
+              <div style="padding: 16px; text-align: left; font-size: 11px; color: ${theme.textSecondary};">
+                <div style="margin-bottom: 8px;">⚠️ Diagram failed to render</div>
+                <details>
+                  <summary style="cursor: pointer; margin-bottom: 8px;">Show diagram code</summary>
+                  <pre style="background: ${theme.background}; padding: 8px; border-radius: 3px; overflow: auto; font-size: 10px;">${chart}</pre>
+                </details>
+              </div>
+            `;
           }
         }
       }
     };
 
-    if (isVisible) {
-      // Small delay to ensure mermaid is ready
-      setTimeout(renderDiagram, 100);
+    if (isActive && renderKey > 0) {
+      // Delay to ensure DOM is ready
+      setTimeout(renderDiagram, 300);
     }
-  }, [isVisible, chart, id, theme.name]);
+  }, [renderKey, isActive, chart, id, theme]);
   
   return (
     <div 
@@ -87,20 +82,29 @@ const MermaidDiagram: React.FC<{ chart: string; id: string }> = ({ chart, id }) 
     >
       <div 
         ref={containerRef}
-        className="mermaid" 
         style={{ 
           background: 'transparent', 
           margin: 0,
-          minHeight: '200px'
+          minHeight: '200px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center'
         }}
       >
-        {!isVisible && (
+        {!isActive && (
           <div style={{ 
             color: theme.textTertiary, 
-            fontSize: '12px',
-            padding: '40px 0'
+            fontSize: '12px'
           }}>
-            Loading diagram...
+            Switch to this tab to view diagram
+          </div>
+        )}
+        {isActive && renderKey === 0 && (
+          <div style={{ 
+            color: theme.textTertiary, 
+            fontSize: '12px'
+          }}>
+            Preparing diagram...
           </div>
         )}
       </div>
@@ -124,6 +128,7 @@ export const Documentation: React.FC = () => {
           </p>
           <MermaidDiagram 
             id="current-architecture"
+            isActive={activeSection === 0}
             chart={`graph TB
     subgraph Frontend ["Frontend - Port 3500"]
         UI["React + TypeScript"]
@@ -168,6 +173,7 @@ export const Documentation: React.FC = () => {
           </p>
           <MermaidDiagram 
             id="theme-system"
+            isActive={activeSection === 1}
             chart={`graph TB
     subgraph DarkThemes ["Dark Themes"]
         GD["GZC Dark - Institutional"]
@@ -224,6 +230,7 @@ export const Documentation: React.FC = () => {
           </p>
           <MermaidDiagram 
             id="component-architecture"
+            isActive={activeSection === 2}
             chart={`graph TD
     App["App.tsx - Entry Point"]
     
