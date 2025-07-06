@@ -15,7 +15,9 @@ export const ProfessionalHeader = () => {
   const {
     currentLayout,
     activeTabId,
-    setActiveTab
+    setActiveTab,
+    createTabWithPrompt,
+    removeTab
   } = useTabLayout()
   
   const { currentTheme: theme } = useTheme()
@@ -129,62 +131,166 @@ export const ProfessionalHeader = () => {
           <div style={{ width: '20px' }} />
         </motion.div>
         
-        <nav style={{ display: "flex", gap: "8px" }}>
-          {tabs.map((tab, index) => (
-            <motion.button
-              key={tab.id}
-              draggable
-              onDragStart={(e) => handleDragStart(e, index)}
-              onDragOver={(e) => handleDragOver(e, index)}
-              onDragLeave={handleDragLeave}
-              onDrop={(e) => handleDrop(e, index)}
-              onDragEnd={handleDragEnd}
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ 
-                opacity: draggedTab === index ? 0.5 : 1, 
-                x: 0,
-                scale: dragOverIndex === index ? 1.05 : 1
-              }}
-              transition={{ delay: index * 0.05 }}
-              whileHover={{ y: -2 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => handleTabClick(tab)}
-              style={{
-                background: activeTab === tab.id 
-                  ? theme.name === 'Institutional' 
-                    ? 'rgba(122, 158, 101, 0.1)' // Light theme gets a light green tint
-                    : theme.name === 'Arctic'
-                    ? 'rgba(0, 0, 0, 0.05)' // Slight darkening of the surface
-                    : `${theme.primary}20` 
-                  : "transparent",
-                color: activeTab === tab.id ? theme.primary : theme.textSecondary,
-                border: dragOverIndex === index ? `2px solid ${theme.primary}` : "none",
-                padding: "6px 12px",
-                fontSize: "12px",
-                fontWeight: "400",
-                borderRadius: "8px",
-                cursor: draggedTab !== null ? "move" : "pointer",
-                transition: "all 0.2s ease",
-                userSelect: "none"
-              }}
-              onMouseEnter={(e) => {
-                if (activeTab !== tab.id) {
-                  e.currentTarget.style.background = theme.name === 'Institutional'
-                    ? 'rgba(122, 158, 101, 0.05)'
-                    : theme.name === 'Arctic'
-                    ? 'rgba(0, 0, 0, 0.02)'  // Very slight darkening for hover
-                    : 'rgba(255, 255, 255, 0.05)'
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (activeTab !== tab.id) {
-                  e.currentTarget.style.background = 'transparent'
-                }
-              }}
-            >
-              {tab.name}
-            </motion.button>
-          ))}
+        <nav style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+          {tabs.map((tab, index) => {
+            // Get tab config to check if closable
+            const tabConfig = currentLayout?.tabs.find(t => t.id === tab.id);
+            return (
+              <div key={tab.id} style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                <motion.button
+                  draggable
+                  onDragStart={(e) => handleDragStart(e, index)}
+                  onDragOver={(e) => handleDragOver(e, index)}
+                  onDragLeave={handleDragLeave}
+                  onDrop={(e) => handleDrop(e, index)}
+                  onDragEnd={handleDragEnd}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ 
+                    opacity: draggedTab === index ? 0.5 : 1, 
+                    x: 0,
+                    scale: dragOverIndex === index ? 1.05 : 1
+                  }}
+                  transition={{ delay: index * 0.05 }}
+                  whileHover={{ y: -2 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => handleTabClick(tab)}
+                  style={{
+                    background: activeTab === tab.id 
+                      ? theme.name === 'Institutional' 
+                        ? 'rgba(122, 158, 101, 0.1)' // Light theme gets a light green tint
+                        : theme.name === 'Arctic'
+                        ? 'rgba(0, 0, 0, 0.05)' // Slight darkening of the surface
+                        : `${theme.primary}20` 
+                      : "transparent",
+                    color: activeTab === tab.id ? theme.primary : theme.textSecondary,
+                    border: dragOverIndex === index ? `2px solid ${theme.primary}` : "none",
+                    padding: "6px 12px",
+                    paddingRight: tabConfig?.closable ? "28px" : "12px",
+                    fontSize: "12px",
+                    fontWeight: "400",
+                    borderRadius: "8px",
+                    cursor: draggedTab !== null ? "move" : "pointer",
+                    transition: "all 0.2s ease",
+                    userSelect: "none",
+                    position: "relative"
+                  }}
+                  onMouseEnter={(e) => {
+                    if (activeTab !== tab.id) {
+                      e.currentTarget.style.background = theme.name === 'Institutional'
+                        ? 'rgba(122, 158, 101, 0.05)'
+                        : theme.name === 'Arctic'
+                        ? 'rgba(0, 0, 0, 0.02)'  // Very slight darkening for hover
+                        : 'rgba(255, 255, 255, 0.05)'
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (activeTab !== tab.id) {
+                      e.currentTarget.style.background = 'transparent'
+                    }
+                  }}
+                >
+                  {tab.name}
+                  
+                  {/* Tab Type Indicator */}
+                  <div style={{
+                    position: 'absolute',
+                    top: '2px',
+                    right: tabConfig?.closable ? '24px' : '4px',
+                    width: '4px',
+                    height: '4px',
+                    borderRadius: '50%',
+                    backgroundColor: 
+                      tabConfig?.type === 'dynamic' ? '#95BD78' :
+                      tabConfig?.type === 'static' ? '#64b5f6' :
+                      tabConfig?.type === 'edit-mode' ? '#DD8B8B' :
+                      '#ABD38F',
+                    opacity: 0.8
+                  }} />
+                </motion.button>
+
+                {/* Close Button for Closable Tabs */}
+                {tabConfig?.closable && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      removeTab(tab.id)
+                    }}
+                    style={{
+                      position: 'absolute',
+                      right: '6px',
+                      top: '50%',
+                      transform: 'translateY(-50%)',
+                      background: 'none',
+                      border: 'none',
+                      cursor: 'pointer',
+                      color: theme.textSecondary,
+                      padding: '2px',
+                      borderRadius: '2px',
+                      opacity: 0.6,
+                      transition: 'all 0.2s ease',
+                      fontSize: '14px',
+                      lineHeight: 1,
+                      width: '14px',
+                      height: '14px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)'
+                      e.currentTarget.style.color = theme.text
+                      e.currentTarget.style.opacity = '1'
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = 'transparent'
+                      e.currentTarget.style.color = theme.textSecondary
+                      e.currentTarget.style.opacity = '0.6'
+                    }}
+                  >
+                    ×
+                  </button>
+                )}
+              </div>
+            )
+          })}
+
+          {/* Add Tab Button */}
+          <motion.button
+            onClick={createTabWithPrompt}
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: '32px',
+              height: '32px',
+              backgroundColor: 'transparent',
+              border: `1px dashed ${theme.border}`,
+              borderRadius: '6px',
+              cursor: 'pointer',
+              color: theme.textSecondary,
+              transition: 'all 0.2s ease',
+              marginLeft: '8px',
+              fontSize: '16px',
+              lineHeight: 1
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.borderColor = theme.primary
+              e.currentTarget.style.backgroundColor = `${theme.primary}10`
+              e.currentTarget.style.color = theme.primary
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.borderColor = theme.border
+              e.currentTarget.style.backgroundColor = 'transparent'
+              e.currentTarget.style.color = theme.textSecondary
+            }}
+            title="Add New Tab"
+          >
+            +
+          </motion.button>
         </nav>
       </div>
       
