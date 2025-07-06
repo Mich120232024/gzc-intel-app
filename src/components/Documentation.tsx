@@ -129,37 +129,25 @@ export const Documentation: React.FC = () => {
           <MermaidDiagram 
             id="current-architecture"
             isActive={activeSection === 0}
-            chart={`graph TB
-    subgraph Frontend ["Frontend - Port 3500"]
-        UI["React + TypeScript"]
-        Theme["Theme System - 11 Themes"]
-        Tabs["Tab Management"]
-        DnD["React Grid Layout"]
-    end
+            chart={`graph TD
+    UI[React + TypeScript] --> Theme[Theme System]
+    UI --> Tabs[Tab Management]
+    UI --> DnD[React Grid Layout]
     
-    subgraph Features ["Core Features"]
-        Header["Professional Header"]
-        Intel["Market Intel Panel"]
-        Docs["Documentation"]
-        Analytics["Analytics Tab"]
-    end
+    Theme --> Header[Professional Header]
+    Theme --> Intel[Market Intel Panel]
+    Theme --> Docs[Documentation]
+    Theme --> Analytics[Analytics Tab]
     
-    subgraph State ["State Management"]
-        Context["React Context"]
-        Local["LocalStorage"]
-        Memory["View Memory"]
-        Inspector["Memory Inspector"]
-    end
+    Theme --> Context[React Context]
+    Context --> Local[LocalStorage]
+    Context --> Memory[View Memory]
+    Memory --> Inspector[Memory Inspector]
     
-    Frontend --> Features
-    Features --> State
-    
-    UI --> Theme
-    UI --> Tabs
-    Theme --> Context
-    Context --> Local
-    Context --> Memory
-    Memory --> Inspector`}
+    Tabs --> Header
+    Tabs --> Intel
+    Tabs --> Docs
+    Tabs --> Analytics`}
           />
         </div>
       )
@@ -174,36 +162,28 @@ export const Documentation: React.FC = () => {
           <MermaidDiagram 
             id="theme-system"
             isActive={activeSection === 1}
-            chart={`graph TB
-    subgraph DarkThemes ["Dark Themes"]
-        GD["GZC Dark - Institutional"]
-        AD["Analytics Dark - Data Viz"]
-        TG["Terminal Green - Bloomberg Style"]
-        TO["Trading Operations - High Contrast"]
-        MT["Midnight Trading - Ultra Dark"]
-        QA["Quantum Analytics - Gradient"]
-        PR["Professional - Sea Blue"]
-    end
+            chart={`graph TD
+    TP[Theme Provider] --> GD[GZC Dark]
+    TP --> AD[Analytics Dark]
+    TP --> TG[Terminal Green]
+    TP --> TO[Trading Operations]
+    TP --> MT[Midnight Trading]
+    TP --> QA[Quantum Analytics]
+    TP --> PR[Professional]
     
-    subgraph LightThemes ["Light Themes"]
-        GL["GZC Light - Clean Professional"]
-        AR["Arctic - Cool Blue-Grey"]
-        PA["Parchment - Warm Silver"]
-        PE["Pearl - Steel Blue"]
-    end
+    TP --> GL[GZC Light]
+    TP --> AR[Arctic]
+    TP --> PA[Parchment]
+    TP --> PE[Pearl]
     
-    subgraph ThemeSystem ["Theme System"]
-        TP["Theme Provider"]
-        LS["LocalStorage Persistence"]
-        CV["CSS Variables"]
-        VM["View Memory System"]
-    end
+    TP --> LS[LocalStorage]
+    TP --> CV[CSS Variables]
+    TP --> VM[View Memory]
     
-    TP --> DarkThemes
-    TP --> LightThemes
-    TP --> LS
-    TP --> CV
-    TP --> VM`}
+    LS --> VM
+    CV --> GD
+    CV --> GL
+    VM --> LS`}
           />
           <div style={{
             backgroundColor: theme.surface,
@@ -232,35 +212,27 @@ export const Documentation: React.FC = () => {
             id="component-architecture"
             isActive={activeSection === 2}
             chart={`graph TD
-    App["App.tsx - Entry Point"]
+    App[App.tsx] --> TP[ThemeProvider]
+    App --> TLP[TabLayoutProvider]
+    App --> EB[ErrorBoundary]
     
-    subgraph Providers ["Provider Layer"]
-        TP["ThemeProvider"]
-        TLP["TabLayoutProvider"]
-        EB["ErrorBoundary"]
-        VM["ViewMemory Hook"]
-    end
+    TP --> PH[ProfessionalHeader]
+    TP --> MIP[MarketIntelPanel]
+    TP --> TC[TabContainer]
     
-    subgraph Core ["Core Components"]
-        PH["ProfessionalHeader"]
-        MIP["MarketIntelPanel"]
-        TC["TabContainer"]
-    end
+    TLP --> TC
+    EB --> PH
+    EB --> MIP
     
-    subgraph Tabs ["Tab Components"]
-        AT["Analytics Tab"]
-        DT["Documentation Tab"]
-    end
+    TC --> AT[Analytics Tab]
+    TC --> DT[Documentation Tab]
     
-    App --> Providers
-    Providers --> Core
-    Core --> Tabs
+    VM[ViewMemory Hook] --> TP
+    VM --> TLP
     
-    TP --> TLP
-    TLP --> EB
-    VM --> TP
-    TC --> AT
-    TC --> DT`}
+    PH --> Tabs[Tab Management]
+    MIP --> Alerts[AI Agents]
+    TC --> Widgets[Widget System]`}
           />
         </div>
       )
