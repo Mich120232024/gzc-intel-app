@@ -40,7 +40,7 @@ const MermaidDiagram: React.FC<{ chart: string; id: string; isActive: boolean }>
           diagramDiv.textContent = chart;
           diagramDiv.style.width = '100%';
           diagramDiv.style.height = '100%';
-          diagramDiv.style.minHeight = '300px';
+          diagramDiv.style.minHeight = '250px';
           containerRef.current.appendChild(diagramDiv);
           
           // Render with mermaid
@@ -84,7 +84,7 @@ const MermaidDiagram: React.FC<{ chart: string; id: string; isActive: boolean }>
     <div 
       style={{ 
         textAlign: 'center', 
-        margin: '16px 0',
+        margin: '12px 0',
         backgroundColor: theme.surfaceAlt,
         border: `1px solid ${theme.border}`,
         borderRadius: '4px',
@@ -97,7 +97,7 @@ const MermaidDiagram: React.FC<{ chart: string; id: string; isActive: boolean }>
         style={{ 
           background: 'transparent', 
           margin: 0,
-          minHeight: '350px',
+          minHeight: '280px',
           width: '100%',
           display: 'flex',
           alignItems: 'center',
@@ -555,14 +555,14 @@ export const themes: Record<string, Theme> = {
 
   return (
     <div style={{
-      minHeight: 'calc(100vh - 120px)',
-      padding: '20px',
+      minHeight: 'calc(100vh - 100px)',
+      padding: '12px',
       color: theme.text
     }}>
       <h1 style={{
-        fontSize: '16px',
+        fontSize: '14px',
         fontWeight: '500',
-        marginBottom: '16px',
+        marginBottom: '8px',
         color: theme.textSecondary,
         opacity: 0.8
       }}>
@@ -572,7 +572,7 @@ export const themes: Record<string, Theme> = {
       <div style={{
         display: 'flex',
         gap: '12px',
-        height: 'calc(100vh - 200px)'
+        height: 'calc(100vh - 160px)'
       }}>
         {/* Navigation */}
         <div style={{
