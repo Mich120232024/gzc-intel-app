@@ -4,6 +4,8 @@ import { useTabLayout } from '../core/tabs/TabLayoutManager'
 import { useTheme } from '../contexts/ThemeContext'
 import { ThemeSelector } from './ThemeSelector'
 import { GZCLogo } from './GZCLogo'
+import { TabContextMenu } from './TabContextMenu'
+import { UserProfile } from './UserProfile'
 
 interface Tab {
   id: string
@@ -17,7 +19,8 @@ export const ProfessionalHeader = () => {
     activeTabId,
     setActiveTab,
     createTabWithPrompt,
-    removeTab
+    removeTab,
+    toggleTabEditMode
   } = useTabLayout()
   
   const { currentTheme: theme } = useTheme()
@@ -28,6 +31,11 @@ export const ProfessionalHeader = () => {
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null)
   const [portfolioValue, setPortfolioValue] = useState(84923.45)
   const [dailyPnL, setDailyPnL] = useState(12497.97)
+  const [contextMenu, setContextMenu] = useState<{
+    isOpen: boolean
+    tabId: string
+    position: { x: number; y: number }
+  }>({ isOpen: false, tabId: '', position: { x: 0, y: 0 } })
 
   useEffect(() => {
     if (currentLayout) {
@@ -37,7 +45,7 @@ export const ProfessionalHeader = () => {
         path: `/${tab.id}`
       }))
       setTabs(mappedTabs)
-      setActiveTabLocal(activeTabId)
+      setActiveTabLocal(activeTabId || '')
     }
   }, [currentLayout, activeTabId])
 
@@ -78,6 +86,22 @@ export const ProfessionalHeader = () => {
   const handleDragEnd = () => {
     setDraggedTab(null)
     setDragOverIndex(null)
+  }
+
+  const handleTabRightClick = (e: React.MouseEvent, tab: Tab) => {
+    e.preventDefault()
+    const tabConfig = currentLayout?.tabs.find(t => t.id === tab.id)
+    if (tabConfig?.closable) {
+      setContextMenu({
+        isOpen: true,
+        tabId: tab.id,
+        position: { x: e.clientX, y: e.clientY }
+      })
+    }
+  }
+
+  const handleCloseContextMenu = () => {
+    setContextMenu({ isOpen: false, tabId: '', position: { x: 0, y: 0 } })
   }
 
 
@@ -140,7 +164,7 @@ export const ProfessionalHeader = () => {
                 <motion.button
                   draggable
                   onDragStart={(e) => handleDragStart(e, index)}
-                  onDragOver={(e) => handleDragOver(e, index)}
+                  onDragOver={(e) => handleDragOver(e as any, index)}
                   onDragLeave={handleDragLeave}
                   onDrop={(e) => handleDrop(e, index)}
                   onDragEnd={handleDragEnd}
@@ -154,18 +178,15 @@ export const ProfessionalHeader = () => {
                   whileHover={{ y: -2 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={() => handleTabClick(tab)}
+                  onContextMenu={(e) => handleTabRightClick(e, tab)}
                   style={{
                     background: activeTab === tab.id 
-                      ? theme.name === 'Institutional' 
-                        ? 'rgba(122, 158, 101, 0.1)' // Light theme gets a light green tint
-                        : theme.name === 'Arctic'
-                        ? 'rgba(0, 0, 0, 0.05)' // Slight darkening of the surface
-                        : `${theme.primary}20` 
+                      ? `${theme.primary}20` // Always use theme primary with transparency
                       : "transparent",
                     color: activeTab === tab.id ? theme.primary : theme.textSecondary,
                     border: dragOverIndex === index ? `2px solid ${theme.primary}` : "none",
                     padding: "6px 12px",
-                    paddingRight: tabConfig?.closable ? "28px" : "12px",
+                    paddingRight: "20px", // Space for type indicator
                     fontSize: "12px",
                     fontWeight: "400",
                     borderRadius: "8px",
@@ -176,11 +197,7 @@ export const ProfessionalHeader = () => {
                   }}
                   onMouseEnter={(e) => {
                     if (activeTab !== tab.id) {
-                      e.currentTarget.style.background = theme.name === 'Institutional'
-                        ? 'rgba(122, 158, 101, 0.05)'
-                        : theme.name === 'Arctic'
-                        ? 'rgba(0, 0, 0, 0.02)'  // Very slight darkening for hover
-                        : 'rgba(255, 255, 255, 0.05)'
+                      e.currentTarget.style.background = `${theme.primary}10` // Lighter transparency for hover
                     }
                   }}
                   onMouseLeave={(e) => {
@@ -195,61 +212,17 @@ export const ProfessionalHeader = () => {
                   <div style={{
                     position: 'absolute',
                     top: '2px',
-                    right: tabConfig?.closable ? '24px' : '4px',
+                    right: '4px',
                     width: '4px',
                     height: '4px',
                     borderRadius: '50%',
                     backgroundColor: 
                       tabConfig?.type === 'dynamic' ? '#95BD78' :
                       tabConfig?.type === 'static' ? '#64b5f6' :
-                      tabConfig?.type === 'edit-mode' ? '#DD8B8B' :
                       '#ABD38F',
                     opacity: 0.8
                   }} />
                 </motion.button>
-
-                {/* Close Button for Closable Tabs */}
-                {tabConfig?.closable && (
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      removeTab(tab.id)
-                    }}
-                    style={{
-                      position: 'absolute',
-                      right: '6px',
-                      top: '50%',
-                      transform: 'translateY(-50%)',
-                      background: 'none',
-                      border: 'none',
-                      cursor: 'pointer',
-                      color: theme.textSecondary,
-                      padding: '2px',
-                      borderRadius: '2px',
-                      opacity: 0.6,
-                      transition: 'all 0.2s ease',
-                      fontSize: '14px',
-                      lineHeight: 1,
-                      width: '14px',
-                      height: '14px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center'
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)'
-                      e.currentTarget.style.color = theme.text
-                      e.currentTarget.style.opacity = '1'
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.backgroundColor = 'transparent'
-                      e.currentTarget.style.color = theme.textSecondary
-                      e.currentTarget.style.opacity = '0.6'
-                    }}
-                  >
-                    ×
-                  </button>
-                )}
               </div>
             )
           })}
@@ -311,6 +284,9 @@ export const ProfessionalHeader = () => {
           </span>
         </motion.div>
         
+        {/* User Profile */}
+        <UserProfile />
+        
         {/* Theme Selector */}
         <ThemeSelector />
 
@@ -339,6 +315,14 @@ export const ProfessionalHeader = () => {
           </svg>
         </button>
       </div>
+
+      {/* Context Menu */}
+      <TabContextMenu
+        tabId={contextMenu.tabId}
+        isOpen={contextMenu.isOpen}
+        position={contextMenu.position}
+        onClose={handleCloseContextMenu}
+      />
 
     </motion.div>
   )

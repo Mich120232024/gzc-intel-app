@@ -151,6 +151,40 @@ export class ComponentInventory {
       quality: 'enhanced'
     })
 
+    // Price Ticker - Real component
+    this.addComponent({
+      id: 'price-ticker',
+      name: 'PriceTicker',
+      displayName: 'Price Ticker',
+      category: 'financial',
+      subcategory: 'market-data',
+      description: 'Real-time price updates for multiple symbols',
+      defaultSize: { w: 3, h: 2 },
+      minSize: { w: 2, h: 1 },
+      maxSize: { w: 6, h: 4 },
+      tags: ['prices', 'real-time', 'ticker', 'market'],
+      complexity: 'simple',
+      quality: 'enhanced',
+      source: 'internal'
+    })
+
+    // Simple Chart - Real component
+    this.addComponent({
+      id: 'simple-chart',
+      name: 'SimpleChart',
+      displayName: 'Simple Chart',
+      category: 'visualization',
+      subcategory: 'charts',
+      description: 'Basic bar chart visualization',
+      defaultSize: { w: 4, h: 3 },
+      minSize: { w: 2, h: 2 },
+      maxSize: { w: 8, h: 6 },
+      tags: ['chart', 'bar', 'visualization', 'data'],
+      complexity: 'simple',
+      quality: 'basic',
+      source: 'internal'
+    })
+
     this.buildSearchIndex()
   }
 

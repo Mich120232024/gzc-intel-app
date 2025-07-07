@@ -2,6 +2,19 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## CRITICAL: Server Management
+
+**AUTOMATIC SERVER MONITORING**: Use `./server-monitor.sh` for a self-healing server that:
+- Auto-restarts if it crashes
+- Monitors health every 30 seconds
+- Allocates 8GB memory automatically
+- Never requires manual intervention
+
+**Quick Commands**:
+- `./server-monitor.sh` - Start with auto-monitoring
+- `./check-server.sh` - Quick status check
+- Server runs on http://localhost:3500/
+
 ## Project Overview
 
 GZC Intel App is a financial intelligence dashboard featuring drag-and-drop widgets, real-time data visualization, and advanced debugging capabilities.

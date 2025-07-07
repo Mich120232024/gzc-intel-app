@@ -1,7 +1,6 @@
 import React from 'react'
 import { ComponentContract, ComponentRegistryEntry } from '../contracts/ComponentContract'
 import { ContractValidator } from '../contracts/ContractValidator'
-import { ProfessionalComponentContract } from '../../components/ProfessionalComponentExample'
 
 /**
  * PROFESSIONAL COMPONENT REGISTRY
@@ -235,11 +234,12 @@ export class ProfessionalComponentRegistry {
     console.log('🚀 Initializing Professional Component Registry...')
 
     // Register professional example component
-    await this.registerComponent(
-      'professional-example',
-      ProfessionalComponentContract,
-      () => import('../../components/ProfessionalComponentExample')
-    )
+    // TODO: Re-enable when ProfessionalComponentExample is created
+    // await this.registerComponent(
+    //   'professional-example',
+    //   ProfessionalComponentContract,
+    //   () => import('../../components/ProfessionalComponentExample')
+    // )
 
     // Register test dashboard
     await this.registerComponent(
@@ -302,7 +302,7 @@ export class ProfessionalComponentRegistry {
           settings: {}
         }
       },
-      () => import('../../components/TestDashboard')
+      () => import('../../components/EmptyTab').then(m => ({ default: () => m.EmptyTab({ title: 'Test Dashboard' }) }))
     )
 
     console.log('✅ Professional Component Registry initialized')

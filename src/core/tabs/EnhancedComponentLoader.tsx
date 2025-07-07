@@ -7,13 +7,11 @@ import { ErrorBoundary } from '../../components/ErrorBoundary'
 import { ComponentLink, TabTemplate } from './TabTemplate'
 import { FeatherIcon } from '../../components/icons/FeatherIcon'
 import { TabContainer } from '../../components/TabContainer'
+import { TabEditButton } from '../../components/TabEditButton'
 // GridTabWrapper removed - all components render directly
 import { 
   componentRegistry, 
-  COMPONENT_NAMES,
-  registerComponent,
-  isComponentRegistered,
-  getRegisteredComponents 
+  COMPONENT_NAMES
 } from './componentRegistry'
 
 // External Component Wrapper - Handles external/K8s components
@@ -311,39 +309,70 @@ export function EnhancedComponentLoader() {
   console.log('EnhancedComponentLoader: Looking for component', activeTab.component)
   console.log('EnhancedComponentLoader: Full registry:', Object.keys(componentRegistry))
   console.log('EnhancedComponentLoader: Active tab details:', JSON.stringify(activeTab))
-  const componentLoader = componentRegistry[activeTab.component]
+  
+  // Fix old dynamic component IDs
+  let componentId = activeTab.component
+  if (componentId && componentId.startsWith('UserTab_')) {
+    console.log('EnhancedComponentLoader: Fixing old component ID:', componentId, '-> UserTabContainer')
+    componentId = 'UserTabContainer'
+    // Update the tab to fix it permanently
+    updateTab(activeTabId, { component: componentId })
+  }
+  
+  const componentLoader = componentRegistry[componentId]
   
   if (!componentLoader) {
-    console.log('EnhancedComponentLoader: Component not found in registry', activeTab.component)
-    return <UnknownComponent componentId={activeTab.component} />
+    console.log('EnhancedComponentLoader: Component not found in registry', componentId)
+    return <UnknownComponent componentId={componentId} />
   }
   
   console.log('EnhancedComponentLoader: Component loader found, creating lazy component')
-  // Lazy load the component
-  const Component = lazy(componentLoader)
   
-  const componentName = COMPONENT_NAMES[activeTab.component] || activeTab.component
+  // Wrap the loader to catch errors
+  const Component = lazy(async () => {
+    try {
+      console.log('EnhancedComponentLoader: Loading component:', componentId)
+      const module = await componentLoader()
+      console.log('EnhancedComponentLoader: Component loaded successfully:', componentId, module)
+      return module
+    } catch (error) {
+      console.error('EnhancedComponentLoader: Failed to load component module:', componentId, error)
+      throw error
+    }
+  })
   
-  // Render all components directly without any wrapper
-  console.log('EnhancedComponentLoader: Rendering component directly:', activeTab.component)
-  return (
-    <ErrorBoundary
-      fallback={(
-        <ErrorFallback 
-          error={new Error(`Failed to load component: ${activeTab.component}`)} 
-          componentName={activeTab.name} 
-        />
-      )}
-    >
-      <Suspense fallback={<LoadingComponent name={activeTab.name} />}>
-        <div className="h-full w-full" style={{ height: '100%', width: '100%' }}>
-          <Component {...(activeTab.props || {})} tabId={activeTab.id} />
-        </div>
-      </Suspense>
-    </ErrorBoundary>
-  )
+  const componentName = COMPONENT_NAMES[componentId] || componentId
+  
+  // Render all components with edit/save button for user-created tabs
+  console.log('EnhancedComponentLoader: Rendering component directly:', componentId)
+  
+  // Wrap in try-catch for better error handling
+  try {
+    return (
+      <ErrorBoundary
+        fallback={(
+          <ErrorFallback 
+            error={new Error(`Failed to load component: ${componentId}`)} 
+            componentName={activeTab.name} 
+          />
+        )}
+      >
+        <Suspense fallback={<LoadingComponent name={activeTab.name} />}>
+          <div className="h-full w-full relative" style={{ height: '100%', width: '100%' }}>
+            {/* Edit/Save Button for User-Created Tabs */}
+            {activeTab.closable && (
+              <TabEditButton tabId={activeTab.id} />
+            )}
+            <Component {...(activeTab.props || {})} tabId={activeTab.id} type={activeTab.type} />
+          </div>
+        </Suspense>
+      </ErrorBoundary>
+    )
+  } catch (error) {
+    console.error('EnhancedComponentLoader: Error rendering component:', error)
+    return <ErrorFallback error={error as Error} componentName={activeTab.name} />
+  }
 }
 
-// Re-export the registry functions
-export { registerComponent, isComponentRegistered, getRegisteredComponents }
+// Re-export registry functions are in componentRegistry.ts, not here
 

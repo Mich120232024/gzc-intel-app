@@ -12,6 +12,7 @@ import { UserProvider } from './contexts/UserContext'
 import { ThemeProvider, useTheme } from './contexts/ThemeContext'
 import { EnhancedErrorBoundary } from './components/EnhancedErrorBoundary'
 import { SentryErrorBoundary } from './config/sentry'
+import { UserTabDebugger } from './components/UserTabDebugger'
 
 import './styles/globals.css'
 import './styles/quantum.css'
@@ -20,6 +21,9 @@ import 'react-resizable/css/styles.css'
 
 // Memory inspector for development (makes memoryInspector available globally)
 import './utils/memoryInspector'
+
+// Fix component IDs on startup
+import './utils/fixComponentIds'
 
 // Inner app component that uses theme
 function AppContent() {
@@ -82,6 +86,9 @@ function AppContent() {
           </span>
         </div>
       </div>
+      
+      {/* Debug Component - Only in Development */}
+      {process.env.NODE_ENV === 'development' && <UserTabDebugger />}
     </div>
   )
 }

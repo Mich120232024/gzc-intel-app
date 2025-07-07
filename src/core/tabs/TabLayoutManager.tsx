@@ -3,6 +3,9 @@ import { v4 as uuidv4 } from 'uuid'
 import { TabManager, setupConsoleHelpers } from './TabUtils'
 import { useUserSettings } from '../../hooks/useUserSettings'
 import { useViewMemory } from '../../hooks/useViewMemory'
+import { TabCreationModal } from '../../components/TabCreationModal'
+import { stateManager } from '../../services/StateManager'
+import { useUser } from '../../contexts/UserContext'
 
 // Component in tab configuration for dynamic tabs
 export interface ComponentInTab {
@@ -18,7 +21,7 @@ export interface TabConfig {
   id: string
   name: string
   component: string // Component identifier to load
-  type: 'dynamic' | 'static' | 'edit-mode' | 'it-managed' // Hybrid tab types
+  type: 'dynamic' | 'static' // Only two types: dynamic or static
   icon?: string
   closable?: boolean
   props?: Record<string, any>
@@ -55,8 +58,11 @@ interface TabLayoutContextValue {
   updateTab: (tabId: string, updates: Partial<TabConfig>) => void
   reorderTabs: (newTabs: TabConfig[]) => void
   
-  // Enhanced tab creation with prompt
+  // Enhanced tab creation with modal
   createTabWithPrompt: () => void
+  showTabModal: boolean
+  setShowTabModal: (show: boolean) => void
+  handleCreateTab: (title: string, type: string) => void
   
   // Layout actions
   saveCurrentLayout: (name: string) => void
@@ -126,47 +132,99 @@ interface TabLayoutProviderProps {
 }
 
 export function TabLayoutProvider({ children }: TabLayoutProviderProps) {
+  const { user } = useUser()
+  const userId = user?.id || 'default-user'
+
+  // Helper function to get user-specific localStorage key
+  const getUserKey = (key: string) => `${key}-${userId}`
+
   const [layouts, setLayouts] = useState<TabLayout[]>([DEFAULT_LAYOUT])
   const [currentLayout, setCurrentLayout] = useState<TabLayout>(DEFAULT_LAYOUT)
   const [activeTabId, setActiveTabId] = useState<string>('analytics')
+  const [showTabModal, setShowTabModal] = useState(false)
   const { saveTabOrder, saveActiveTab, saveLayout } = useViewMemory()
 
-  // Load saved layouts from localStorage on mount
+  // Load saved layouts from localStorage when user changes
   useEffect(() => {
-    console.log('TabLayoutManager: Loading layouts from localStorage')
-    const savedLayouts = localStorage.getItem('gzc-intel-layouts')
+    console.log(`TabLayoutManager: Loading layouts for user ${userId}`)
+    
+    // First, load all saved layouts for this user
+    let allLayouts = [DEFAULT_LAYOUT]
+    const savedLayouts = localStorage.getItem(getUserKey('gzc-intel-layouts'))
     if (savedLayouts) {
       try {
         const parsed = JSON.parse(savedLayouts)
-        console.log('TabLayoutManager: Found saved layouts:', parsed)
-        setLayouts([DEFAULT_LAYOUT, ...parsed])
+        console.log(`TabLayoutManager: Found saved layouts for user ${userId}:`, parsed)
+        allLayouts = [DEFAULT_LAYOUT, ...parsed]
+        setLayouts(allLayouts)
       } catch (e) {
         console.error('Failed to load saved layouts:', e)
       }
     } else {
-      console.log('TabLayoutManager: No saved layouts, using defaults')
+      console.log(`TabLayoutManager: No saved layouts for user ${userId}, using defaults`)
+      setLayouts([DEFAULT_LAYOUT])
     }
 
-    // Load last active layout
-    const lastLayoutId = localStorage.getItem('gzc-intel-active-layout')
-    if (lastLayoutId && lastLayoutId !== 'default') {
-      const savedLayout = layouts.find(l => l.id === lastLayoutId)
-      if (savedLayout) {
-        setCurrentLayout(savedLayout)
+    // Load the current layout with all its tabs for this user
+    let layoutToUse = DEFAULT_LAYOUT
+    const savedCurrentLayoutStr = localStorage.getItem(getUserKey('gzc-intel-current-layout'))
+    
+    if (savedCurrentLayoutStr) {
+      try {
+        const parsedCurrentLayout = JSON.parse(savedCurrentLayoutStr)
+        console.log(`TabLayoutManager: Restoring current layout for user ${userId}:`, parsedCurrentLayout)
+        layoutToUse = parsedCurrentLayout
+        setCurrentLayout(parsedCurrentLayout)
+      } catch (e) {
+        console.error('Failed to load current layout:', e)
+      }
+    } else {
+      // Fallback: try to load by ID
+      const lastLayoutId = localStorage.getItem(getUserKey('gzc-intel-active-layout'))
+      if (lastLayoutId && lastLayoutId !== 'default') {
+        const savedLayout = allLayouts.find(l => l.id === lastLayoutId)
+        if (savedLayout) {
+          console.log(`TabLayoutManager: Loading layout by ID for user ${userId}:`, savedLayout)
+          layoutToUse = savedLayout
+          setCurrentLayout(savedLayout)
+        }
+      } else {
+        // No saved layout, use default
+        setCurrentLayout(DEFAULT_LAYOUT)
       }
     }
-  }, [])
+
+    // Set initial active tab based on what layout we ended up with
+    const lastActiveTab = sessionStorage.getItem(getUserKey('gzc-intel-active-tab'))
+    if (lastActiveTab && layoutToUse.tabs.some((t: TabConfig) => t.id === lastActiveTab)) {
+      setActiveTabId(lastActiveTab)
+    } else if (layoutToUse.tabs.length > 0) {
+      setActiveTabId(layoutToUse.tabs[0].id)
+    }
+  }, [userId]) // Re-run when user changes
 
   // Save layouts to localStorage whenever they change
   useEffect(() => {
     const userLayouts = layouts.filter(l => !l.isDefault)
-    localStorage.setItem('gzc-intel-layouts', JSON.stringify(userLayouts))
-  }, [layouts])
+    localStorage.setItem(getUserKey('gzc-intel-layouts'), JSON.stringify(userLayouts))
+    // Trigger global state save
+    stateManager.autoSave()
+  }, [layouts, userId])
 
-  // Save current layout ID
+  // Save current layout ID and the layout itself
   useEffect(() => {
-    localStorage.setItem('gzc-intel-active-layout', currentLayout.id)
-  }, [currentLayout.id])
+    localStorage.setItem(getUserKey('gzc-intel-active-layout'), currentLayout.id)
+    // Also save the current layout data
+    localStorage.setItem(getUserKey('gzc-intel-current-layout'), JSON.stringify(currentLayout))
+    stateManager.autoSave()
+  }, [currentLayout, userId])
+
+  // Save active tab
+  useEffect(() => {
+    if (activeTabId) {
+      sessionStorage.setItem(getUserKey('gzc-intel-active-tab'), activeTabId)
+    }
+  }, [activeTabId, userId])
 
   const defaultLayout = layouts.find(l => l.isDefault) || DEFAULT_LAYOUT
   const userLayouts = layouts.filter(l => !l.isDefault)
@@ -185,10 +243,18 @@ export function TabLayoutProvider({ children }: TabLayoutProviderProps) {
     
     setCurrentLayout(updatedLayout)
     
-    // Update in layouts array if it's a saved layout
-    if (!currentLayout.isDefault) {
+    // Update in layouts array
+    if (currentLayout.isDefault) {
+      // For default layout, we need to update it in the layouts array
+      // to ensure the modified default is saved
+      setLayouts(layouts.map(l => l.id === 'default' ? updatedLayout : l))
+    } else {
+      // For user layouts, update normally
       setLayouts(layouts.map(l => l.id === currentLayout.id ? updatedLayout : l))
     }
+    
+    // Force save current layout immediately
+    localStorage.setItem(getUserKey('gzc-intel-current-layout'), JSON.stringify(updatedLayout))
     
     // Set as active tab
     setActiveTabId(newTab.id)
@@ -201,7 +267,7 @@ export function TabLayoutProvider({ children }: TabLayoutProviderProps) {
   useEffect(() => {
     TabManager.setAddTabFunction(addTab)
     setupConsoleHelpers()
-  }, [])
+  }, [addTab])
 
   const removeTab = (tabId: string) => {
     // Don't allow removing the last tab or non-closable tabs
@@ -342,38 +408,45 @@ export function TabLayoutProvider({ children }: TabLayoutProviderProps) {
     }
   }
 
-  // Enhanced tab creation with prompt
+  // Enhanced tab creation with modal - opens in edit mode by default
   const createTabWithPrompt = () => {
-    const title = prompt('Enter tab title:')
-    if (!title) return
+    setShowTabModal(true)
+  }
 
-    const tabTypes = [
-      { value: 'dynamic', label: 'Dynamic (Full drag & drop)' },
-      { value: 'static', label: 'Static (Fixed layout)' },
-      { value: 'edit-mode', label: 'Edit Mode (Controlled customization)' },
-      { value: 'it-managed', label: 'IT Managed (Enterprise features)' }
-    ]
-
-    const typeSelection = prompt(
-      `Select tab type:\n${tabTypes.map((t, i) => `${i + 1}. ${t.label}`).join('\n')}\n\nEnter number (1-4):`
-    )
-
-    const typeIndex = parseInt(typeSelection || '1') - 1
-    const selectedType = tabTypes[typeIndex]?.value || 'static'
-
+  const handleCreateTab = (title: string, selectedType: string) => {
+    // Check for duplicate names
+    const existingTab = currentLayout.tabs.find(t => t.name.toLowerCase() === title.toLowerCase())
+    if (existingTab) {
+      alert(`Tab name "${title}" already exists. Please choose a different name.`)
+      return
+    }
+    
     const newTab: Omit<TabConfig, 'id'> = {
       name: title,
-      component: selectedType === 'dynamic' ? 'DynamicCanvas' : title.replace(/\s+/g, ''),
+      component: 'UserTabContainer', // Fixed component ID for all user tabs
       type: selectedType as TabConfig['type'],
       icon: getIconForTabType(selectedType as TabConfig['type']),
       closable: true,
-      gridLayoutEnabled: selectedType === 'dynamic' || selectedType === 'edit-mode',
+      gridLayoutEnabled: selectedType === 'dynamic',
       components: selectedType === 'dynamic' ? [] : undefined,
-      editMode: false,
+      editMode: false, // Start in view mode, user can toggle to edit
       memoryStrategy: selectedType === 'dynamic' ? 'hybrid' : 'local'
     }
 
-    addTab(newTab)
+    const createdTab = addTab(newTab)
+    
+    // Auto-save tab immediately
+    if (!currentLayout.isDefault) {
+      // Update existing layout
+      const updatedLayout = {
+        ...currentLayout,
+        tabs: [...currentLayout.tabs, { ...newTab, id: createdTab.id }],
+        updatedAt: new Date().toISOString()
+      }
+      setLayouts(layouts.map(l => l.id === currentLayout.id ? updatedLayout : l))
+    }
+    
+    setShowTabModal(false)
   }
 
   // Helper function to get appropriate icon for tab type
@@ -381,8 +454,6 @@ export function TabLayoutProvider({ children }: TabLayoutProviderProps) {
     switch (type) {
       case 'dynamic': return 'grid'
       case 'static': return 'layout'
-      case 'edit-mode': return 'edit'
-      case 'it-managed': return 'shield'
       default: return 'square'
     }
   }
@@ -476,7 +547,7 @@ export function TabLayoutProvider({ children }: TabLayoutProviderProps) {
 
   const toggleTabEditMode = (tabId: string) => {
     const tab = currentLayout.tabs.find(t => t.id === tabId)
-    if (!tab || tab.type !== 'edit-mode') return
+    if (!tab || !tab.closable) return // Only allow edit mode for user-created tabs
 
     const updatedLayout = {
       ...currentLayout,
@@ -506,6 +577,9 @@ export function TabLayoutProvider({ children }: TabLayoutProviderProps) {
     updateTab,
     reorderTabs,
     createTabWithPrompt,
+    showTabModal,
+    setShowTabModal,
+    handleCreateTab,
     saveCurrentLayout,
     loadLayout,
     deleteLayout,
@@ -521,6 +595,11 @@ export function TabLayoutProvider({ children }: TabLayoutProviderProps) {
   return (
     <TabLayoutContext.Provider value={value}>
       {children}
+      <TabCreationModal 
+        isOpen={showTabModal}
+        onClose={() => setShowTabModal(false)}
+        onCreateTab={handleCreateTab}
+      />
     </TabLayoutContext.Provider>
   )
 }
